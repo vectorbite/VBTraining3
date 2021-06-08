@@ -1,0 +1,11 @@
+---
+title: "About VectorBiTE"
+description: |
+  The Vector Behavior in Transmission Ecology Research Coordination Network
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+For more information about the goals and approach of the VectorBiTE RCN are available at [vectorbite.org](http://www.vectorbite.org).

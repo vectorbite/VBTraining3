@@ -1,0 +1,21 @@
+{
+  "articles": [
+    {
+      "path": "about.html",
+      "title": "About VectorBiTE",
+      "description": "The Vector Behavior in Transmission Ecology Research Coordination Network",
+      "author": [],
+      "contents": "\nFor more information about the goals and approach of the VectorBiTE RCN are available at vectorbite.org.\n\n\n\n",
+      "last_modified": "2021-06-08T13:57:16-04:00"
+    },
+    {
+      "path": "index.html",
+      "title": "VectorBiTE Training",
+      "description": "2021 Virtual VectorBiTE RCN Training\n",
+      "author": [],
+      "contents": "\nDetails and training materials are coming soon!\n\n\n\n",
+      "last_modified": "2021-06-08T13:57:17-04:00"
+    }
+  ],
+  "collections": []
+}

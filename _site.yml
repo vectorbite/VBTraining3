@@ -1,0 +1,12 @@
+name: "VBTraining3"
+title: "VectorBiTE Training"
+description: |
+  VectorBiTE Training
+output_dir: "docs"
+navbar:
+  right:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+output: distill::distill_article
