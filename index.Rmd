@@ -1,7 +1,8 @@
 ---
-title: "VectorBiTE Training"
+title: |
+ ![](graphics/VB_logo.jpg) VectorBiTE Training 
 description: |
- 2021 Virtual VectorBiTE RCN Training
+ 2021 Virtual VectorBiTE RCN Training   
 site: distill::distill_website
 ---
 
@@ -9,7 +10,9 @@ site: distill::distill_website
 knitr::opts_chunk$set(echo = FALSE)
 
 # Learn more about creating websites with Distill at:
-# https://rstudio.github.io/distill/website.html
+# https://rstudio.github.io/distill/website.html  
+
+##
 
 # Learn more about publishing to GitHub Pages at:
 # https://rstudio.github.io/distill/publish_website.html#github-pages
@@ -17,4 +20,15 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
-Details and training materials are coming soon! 
+Welcome to the 3rd VectorBiTE methods training session! 
+
+Details, schedules, and training materials are coming soon.
+
+
+<br>
+<br>
+<br>
+
+<center>
+![](graphics/VB_logo.jpg){width=2in} 
+</center>

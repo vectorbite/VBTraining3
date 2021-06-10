@@ -1,12 +1,28 @@
 name: "VBTraining3"
 title: "VectorBiTE Training"
+theme: VBtheme.css
 description: |
   VectorBiTE Training
+favicon: graphics/VB_logo.jpg
+twitter: 
+  site: "@VectorBiTE_RCN"
+repository_url: https://github.com/vectorbite/VBTraining3
+creative_commons: CC BY
 output_dir: "docs"
 navbar:
+  logo: 
+    image: graphics/VB_logo.jpg
+    href: https://www.vectorbite.org/
   right:
     - text: "Home"
       href: index.html
     - text: "About"
       href: about.html
+    - text: "Example"
+      href: example.html
+    - icon: fab fa-github
+      href: https://github.com/vectorbite
+    - icon: fab fa-twitter
+      href: https://twitter.com/vectorbite_rcn
+
 output: distill::distill_article
