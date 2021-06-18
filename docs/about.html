@@ -85,32 +85,32 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 </style>
 
   <!--radix_placeholder_meta_tags-->
-  <title>VectorBiTE Training: About VectorBiTE</title>
+  <title>VectorBiTE Training: About the VectorBiTE Training Materials</title>
 
-  <meta property="description" itemprop="description" content="The Vector Behavior in Transmission Ecology Research Coordination Network"/>
+  <meta property="description" itemprop="description" content="Suggestions about how to use the materials for self learning"/>
 
   <link rel="license" href="https://creativecommons.org/licenses/by/4.0/"/>
   <link rel="icon" type="image/jpeg" href="graphics/VB_logo.jpg"/>
 
 
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
-  <meta property="og:title" content="VectorBiTE Training: About VectorBiTE"/>
+  <meta property="og:title" content="VectorBiTE Training: About the VectorBiTE Training Materials"/>
   <meta property="og:type" content="article"/>
-  <meta property="og:description" content="The Vector Behavior in Transmission Ecology Research Coordination Network"/>
+  <meta property="og:description" content="Suggestions about how to use the materials for self learning"/>
   <meta property="og:locale" content="en_US"/>
   <meta property="og:site_name" content="VectorBiTE Training"/>
 
   <!--  https://dev.twitter.com/cards/types/summary -->
   <meta property="twitter:card" content="summary"/>
-  <meta property="twitter:title" content="VectorBiTE Training: About VectorBiTE"/>
-  <meta property="twitter:description" content="The Vector Behavior in Transmission Ecology Research Coordination Network"/>
+  <meta property="twitter:title" content="VectorBiTE Training: About the VectorBiTE Training Materials"/>
+  <meta property="twitter:description" content="Suggestions about how to use the materials for self learning"/>
   <meta property="twitter:site" content="@VectorBiTE_RCN"/>
 
   <!--/radix_placeholder_meta_tags-->
   <!--radix_placeholder_rmarkdown_metadata-->
 
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description"]}},"value":[{"type":"character","attributes":{},"value":["About VectorBiTE"]},{"type":"character","attributes":{},"value":["The Vector Behavior in Transmission Ecology Research Coordination Network"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description"]}},"value":[{"type":"character","attributes":{},"value":["About the VectorBiTE Training Materials"]},{"type":"character","attributes":{},"value":["Suggestions about how to use the materials for self learning "]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   <!--radix_placeholder_navigation_in_header-->
@@ -2150,9 +2150,9 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   /*-- ARTICLE METADATA --*/
     d-byline {
       --heading-size:    0.6rem;
-      --heading-color:   rgba(173, 0, 89, 0.5);
+      --heading-color:   rgba(197, 222, 221,0.5); /*rgba(173, 0, 89, 0.5);*/
       --body-size:       0.8rem;
-      --body-color:      rgba(173, 0, 89, 0.8);
+      --body-color:      rgba(197, 222, 221,0.8); /*rgba(173, 0, 89, 0.8)*/;
     }
 
   /*-- ARTICLE TABLE OF CONTENTS --*/
@@ -2467,7 +2467,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"About VectorBiTE","description":"The Vector Behavior in Transmission Ecology Research Coordination Network","authors":[]}
+{"title":"About the VectorBiTE Training Materials","description":"Suggestions about how to use the materials for self learning","authors":[]}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -2483,7 +2483,16 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <div class="nav-right">
 <a href="index.html">Home</a>
 <a href="about.html">About</a>
-<a href="example.html">Example</a>
+<div class="nav-dropdown">
+<button class="nav-dropbtn">
+Examples
+ 
+<span class="down-arrow">&#x25BE;</span>
+</button>
+<div class="nav-dropdown-content">
+<a href="example.html">Example 1</a>
+</div>
+</div>
 <a href="https://github.com/vectorbite">
 <i class="fab fa-github" aria-hidden="true"></i>
 </a>
@@ -2499,14 +2508,30 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--/radix_placeholder_site_before_body-->
 
 <div class="d-title">
-<h1>About VectorBiTE</h1>
+<h1>About the VectorBiTE Training Materials</h1>
 <!--radix_placeholder_categories-->
 <!--/radix_placeholder_categories-->
-<p><p>The Vector Behavior in Transmission Ecology Research Coordination Network</p></p>
+<p><p>Suggestions about how to use the materials for self learning</p></p>
 </div>
 
 
 <div class="d-article">
+<p>As the VectorBiTE team has developed these materials, we’ve aimed to provide resources for both guided (during the workshop) and self-led learning. We assume basic familiarity with:</p>
+<ul>
+<li><a href="https://cran.r-project.org/">The R Programming Language</a></li>
+<li>Basic calculus (especially the mathematical idea of functions)</li>
+<li>Basic probability and statistics (e.g., what is a probability distribution, normal and binomial distributions, means, variances)</li>
+</ul>
+<p>We’ve divided the materials into subject matter modules, and categorized these loosely from beginner to advanced methods. Each module is designed to build on the previous one, and expects at least knowledge of all of the preceding modules in the sequence. Based on your experience, we encourage students to “choose your own adventure” and start from where you feel comfortable.</p>
+<p>Each module consists of four kinds of materials:</p>
+<ul>
+<li>slides with presentation of materials</li>
+<li>videos with recorded lectures based on slides</li>
+<li>labs/hands-on materials to allow you to practice material in a practical way</li>
+<li>solutions to exercises, when necessary</li>
+</ul>
+<p>We also include links to additional resources/materials/references.</p>
+<p><br> <br></p>
 <p>For more information about the goals and approach of the VectorBiTE RCN are available at <a href="http://www.vectorbite.org">vectorbite.org</a>.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->

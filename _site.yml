@@ -9,6 +9,9 @@ twitter:
 repository_url: https://github.com/vectorbite/VBTraining3
 creative_commons: CC BY
 output_dir: "docs"
+collections:
+  lectures:
+    categories: true
 navbar:
   logo: 
     image: graphics/VB_logo.jpg
@@ -18,8 +21,10 @@ navbar:
       href: index.html
     - text: "About"
       href: about.html
-    - text: "Example"
-      href: example.html
+    - text: "Examples"
+      menu:
+        - text: "Example 1"
+          href: example.html
     - icon: fab fa-github
       href: https://github.com/vectorbite
     - icon: fab fa-twitter

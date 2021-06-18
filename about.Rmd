@@ -1,11 +1,32 @@
 ---
-title: "About VectorBiTE"
+title: "About the VectorBiTE Training Materials"
 description: |
-  The Vector Behavior in Transmission Ecology Research Coordination Network
+  Suggestions about how to use the materials for self learning 
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
+As the VectorBiTE team has developed these materials, we've aimed to provide resources for both guided (during the workshop) and self-led learning. We assume basic familiarity with:
+
+- [The R Programming Language](https://cran.r-project.org/)
+- Basic calculus (especially the mathematical idea of functions)
+- Basic probability and statistics (e.g., what is a probability distribution, normal and binomial distributions, means, variances)
+
+We've divided the materials into subject matter modules, and categorized these loosely from beginner to advanced methods. Each module is designed to build on the previous one, and expects at least knowledge of all of the preceding modules in the sequence. Based on your experience, we encourage students to "choose your own adventure" and start from where you feel comfortable. 
+
+Each module consists of four kinds of materials:
+
+- slides with presentation of materials
+- videos with recorded lectures based on slides
+- labs/hands-on materials to allow you to practice material in a practical way
+- solutions to exercises, when necessary
+
+We also include links to additional resources/materials/references.  
+
+
+<br>
+<br>
 
 For more information about the goals and approach of the VectorBiTE RCN are available at [vectorbite.org](http://www.vectorbite.org).
