@@ -1,0 +1,55 @@
+---
+title: "2021 Training Schedule"
+description: "Schedule for synchronous training and suggestions for assynchronous study. TIMES ARE TENTATIVE."
+output: 
+  distill::distill_article:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Pre-workshop
+
+Before the workshop we have a number of suggested and required tasks for you to complete. These are enumerated HERE (coming soon). 
+
+Once you have completed the pre-work and set-up tasks, you should get yourself familiar with the [VectorBiTE Training materials](materials.html). You will choose a starting point based on your previous experience. Much of the synchronous time is planned to be dedicated to helping you work through exercises and activities. Thus you'll want to watch the videos and take a look at the slides off line (likely starting earlier in the week for most participants). The small subset of live instruction portions is elaborated below.
+
+<br>
+<br>
+<br>
+
+# 28 July 2021 (9:30am - 1:00pm US EST)
+
+| Time     | Activity             | Materials                |
+| -------  | -------------------- | ------------------------ |
+|  9:30am  | Introduction         |                          |
+| 10:00am  | VectorByte Databases | [Example](example.html)  |
+
+<br>
+<br>
+<br>
+
+# 29 July 2021 (9:30am - 1:00pm US EST)
+
+
+
+<br>
+<br>
+<br>
+
+# 30 July 2021 (9:30am - 1:00pm US EST)
+
+
+<br>
+<br>
+<br>
+
+# Post-workshop
+
+
+<br>
+<br>
+<br>
+

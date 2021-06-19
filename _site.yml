@@ -23,6 +23,8 @@ navbar:
       href: about.html
     - text: "Materials"
       href: materials.html
+    - text: "2021 Schedule"
+      href: "schedule2021.html"
     - icon: fab fa-github
       href: https://github.com/vectorbite/VBTraining3
     - icon: fab fa-twitter
