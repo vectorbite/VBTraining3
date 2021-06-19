@@ -1,0 +1,29 @@
+---
+title: "The VectorBiTE Training Materials"
+description: |
+  Links to all course materials
+output: 
+  distill::distill_article:
+    toc: true 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# Overview to the materials
+
+# Pre-work and set-up
+
+# Beginner materials
+
+### Example 1
+
+- Lecture slides
+- Lecture video
+- [Activity 1](example.html)
+
+# Intermediate materials
+
+# Advanced materials
