@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ### Example 1
 
-- Lecture slides
+- [Lecture slides](lectures/VB_likelihood.pdf)
 - Lecture video
 - [Activity 1](example.html)
 

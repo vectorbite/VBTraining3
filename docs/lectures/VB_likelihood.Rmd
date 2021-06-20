@@ -1,0 +1,166 @@
+---
+title: |
+    | VectorBiTE Methods Training
+    | Introduction to the Likelihood
+author: "The VectorBiTE Team"
+date: "Summer 2021"
+output:
+  beamer_presentation:
+    fig_caption: no
+    includes:
+      in_header: header.tex
+    latex_engine: pdflatex
+    slide_level: 2
+    highlight: tango
+    colortheme: "seagull"
+    fonttheme: "structurebold"
+    theme: "Szeged"
+  ioslides_presentation: default
+classoption: aspectratio=169
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(cache = FALSE, 
+                      echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE,
+                      fig.height=6, 
+                      fig.width = 1.777777*6,
+                      tidy = FALSE, 
+                      comment = NA, 
+                      highlight = TRUE, 
+                      prompt = FALSE, 
+                      crop = TRUE,
+                      comment = "#>",
+                      collapse = TRUE)
+knitr::opts_knit$set(width = 60)
+source("my_knitter.R")
+#library(tidyverse)
+#library(reshape2)
+#theme_set(theme_light(base_size = 16))
+make_latex_decorator <- function(output, otherwise) {
+  function() {
+      if (knitr:::is_latex_output()) output else otherwise
+  }
+}
+insert_pause <- make_latex_decorator(". . .", "\n")
+insert_slide_break <- make_latex_decorator("----", "\n")
+insert_inc_bullet <- make_latex_decorator("> *", "*")
+insert_html_math <- make_latex_decorator("", "$$")
+```
+
+
+
+## Assumed Background 
+
+In this workshop, we expect that you are familiar with:
+
+- axioms of probability and their consequences.
+- conditional probability and Bayes theorem
+- definition of a random variable (discrete and continuous)
+- the idea of a probability distribution and likelihood
+
+
+Pre-workshop reading and exercises were assigned to help you review and get you ready.
+
+`r sk2()`
+
+We'll do a VERY fast review of likelihoods and then practice building them and finding the MLEs analytically and with R.
+
+## Finding estimates of parameters
+
+When we fit lines using least squares and similar techniques, we defined a metric to measure `r myred("distance")` between a prediction and our data, and then found parameters that made that distance as small as possible.
+
+`r sk2()`
+
+Likelihoods are another way of defining a distance between our prediction (probability distribution) and data and allow us to find parameter values that are consistent with the data under the constraint of a particular probability distribution. 
+
+
+## Method of Moments
+
+Before we talk about likelihoods, let's review an easy alternative to finding consistent parameters that assumes a probability distribution: `r myblue("method of moments")`. 
+
+`r sk2()`
+
+`r insert_pause()`
+
+Consider an $iid$ sample of $n$ observations of a  random variable
+$\{x_1,\ldots,x_n\}$. You can calculate sample values of the moments of the RV from these, i.e.:
+\begin{align*}
+\bar{x} & =\frac{1}{n} \sum_{i=1}^n x_i \\
+s^2 & = \frac{1}{n} \sum (x-\bar{x})^2
+\end{align*}
+
+You estimate the parameters of a probability distribution by ``matching'' up the sample moments with the analytical values of the moments for your probability distribution. 
+
+## Likelihoods
+
+Recall that $f(Y_i)$ is the pmf (pdf), and it tells us the probability (density) of some yet to be observed datum $Y_i$ given a probability distribution and its parameters. If we make many observations, $\mathbf{Y}=y_1, y_2, \dots, y_n$, we are interested how probable it was that we obtained these data, jointly. We call this the ``likelihood'' of the data, and denote it as 
+\begin{align*}
+\mathcal{L}(\theta; Y)=f_\theta(Y)
+\end{align*}
+where $f_\theta(Y)$ is the pdf (or pmf) of the data interpreted as a function of $\theta$. 
+
+
+---------------------
+
+For instance, for binomial data:
+\begin{align*}
+\text{Pr}(Y_i=k | \theta=p)=  {N \choose k} p^k(1-p)^{N-k}.
+\end{align*}
+If we have data  $\mathbf{Y}=y_1, y_2, \dots, y_n$ that are i.i.d. as binomial RVs, the probabilities multiply, and the likelihood is:
+\begin{align*}
+\mathcal{L}(\theta; Y) = \prod_{i=1}^n {N \choose y_i} p^{y_i}(1-p)^{N-y_i}.
+\end{align*}
+
+
+
+## Likelihoods vs. probability
+
+``Likelihood is the hypothetical probability [density] that an event that has already occurred would yield a specific outcome. The concept differs from that of a probability in that a probability refers to the occurrence of future events, while a likelihood refers to past events with known outcomes.'' (1) 
+
+`r sk2()`
+
+Further, the likelihood is a function of $\theta$ (the parameters), assuming fixed data. 
+
+
+`r sk2()`
+`r sk2()`
+`r sk2()`
+ 
+ \tiny 1. Weisstein, Eric W. ``Likelihood.'' From MathWorld--A Wolfram Web Resource. http://mathworld.wolfram.com/Likelihood.html \normalsize
+
+
+------- 
+
+We are usually interested in relative likelihoods -- e.g., is it more likely that the data we observed came from a distribution with parameters $\theta_1$ or $\theta_2$? Thus we only worry about the likelihood up to a constant. Further, it is often easier to work with the log-likelihood:
+\begin{align*}
+L(\theta; Y) = \ell(\theta; Y) = \log(\mathcal{L}(\theta;Y))
+\end{align*}
+where $\log(\cdot)$ is the natural log. 
+
+
+
+## Maximum Likelihood Estimators (MLEs)
+
+We can find the parameters that are most likely to have generated our data -- the maximum likelihood estimate (mle) of the parameters. To do this we maximize the likelihood (or equivalently minimizing the negative log-likelihood) by taking its derivative and setting it equally to zero:
+\begin{align*}
+\frac{\partial \mathcal{L}}{\partial\theta_j} =0 \text{\hspace{0.5 cm} or \hspace{0.5 cm}}
+-\frac{\partial L}{\partial \theta_j} = 0 
+\end{align*}
+where $j$ denotes the $j^{\mathrm{th}}$ parameter. We usually denote the MLE as $\hat{\theta}_j$.
+
+
+-----------
+
+The likelihood __`r myred("DOES NOT")`__ tell you the probability that parameters have a certain value, given the data. To obtain that quantity, usually called the ``posterior probability of the parameters'' in Bayesian statistics, you have to use Bayes Theorem. 
+
+
+
+
+-------------
+
+```{r}
+x<-mean(1:10)
+```
+

@@ -1,0 +1,266 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+  \usepackage{amssymb}
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={VectorBiTE 2019 Training 2019},
+  pdfauthor={Your Name Here},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{VectorBiTE 2019 Training 2019}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Activity: Method of Moments and Likelihoods}
+\author{Your Name Here}
+\date{June 2019}
+
+\begin{document}
+\maketitle
+
+\hypertarget{the-binomial-distribution}{%
+\subsection{The Binomial Distribution}\label{the-binomial-distribution}}
+
+Used to model the number of ``successes'\,' in a set of trials (e.g.,
+number of heads when you flip a coin \(N\) times). The pmf is
+\begin{align*}
+{N \choose x} p^x(1-p)^{N-x}
+\end{align*} such that \(\mathrm{E}[x]=Np\). Throughout this lab, you
+will assume that your experiment consists of flipping 20 coins, so that
+\(N=20\).
+
+You will use the Binomial distribution to practice two methods of
+estimating parameters for a probability distribution: method of moments
+and maximum likelihood.
+
+\hypertarget{simulating-from-the-binomial-using-r}{%
+\subsubsection{Simulating from the Binomial using
+R}\label{simulating-from-the-binomial-using-r}}
+
+Take 50 draws from a binomial (using \emph{rbinom}) for each \(p\in\)
+0.1, 0.5, 0.8 with \(N=20\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# 50 draws with each p }
+\NormalTok{pp}\OtherTok{\textless{}{-}}\FunctionTok{c}\NormalTok{(}\FloatTok{0.1}\NormalTok{, }\FloatTok{0.5}\NormalTok{, }\FloatTok{0.8}\NormalTok{)}
+\NormalTok{N}\OtherTok{\textless{}{-}}\DecValTok{20}
+\NormalTok{reps}\OtherTok{\textless{}{-}}\DecValTok{50}
+\end{Highlighting}
+\end{Shaded}
+
+Plot the histograms of these draws together with the density functions.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# histograms + density here}
+\NormalTok{x}\OtherTok{\textless{}{-}}\FunctionTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{50}\NormalTok{, }\AttributeTok{by=}\DecValTok{1}\NormalTok{)}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow=}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{), }\AttributeTok{bty=}\StringTok{"n"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{\emph{Q1: Do the histograms look like the distributions for all
+3 values of \(p\)? If not, what do you think is going on?}}
+
+You'll notice that for \(p=0.1\) the histogram and densities don't look
+quite the same -- the \emph{hist()} function is lumping together the
+zeros and ones which makes it look off. This is typical for
+distributions that are truncated.
+
+\hypertarget{method-of-moments-mom-estimators}{%
+\subsubsection{Method of Moments (MoM)
+Estimators}\label{method-of-moments-mom-estimators}}
+
+To obtain a method of moments estimator, we equate the theoretical
+moments (which will be a function of the parameters of the distribution)
+with the corresponding sample moments, and solve for the parameters in
+order to obtain an estimate. For the binomial distribution, there is
+only one parameter, \(p\).
+
+\textbf{\emph{Q2: Given the analytic expected value, above, and assuming
+that the sample mean is \(m\) (the mean number of observed heads across
+replicates), what is the MoM estimator for \(p\)?}}
+
+Now calculate the MoM estimator for each of your 3 sets of simulated
+data sets to get the estimates for each of your values of \(p\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# MOM estimators for 3 simulated sets}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{\emph{Q3: How good are your estimates for \(p\)? Do you get
+something close to the true value?}}
+
+For 1 of your values of \(p\), take 20 draws from the binomial with
+\(N=20\) and calculate the MoM. Repeat this 100 times (hint: the
+\emph{replicate()} and \emph{lapply} functions may be useful.) Make a
+histogram of your estimates, and add a line/point to the plot to
+indicate the real value of \(p\) that you used to simulate the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# MoM estimates, histogram }
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{\emph{Q4: Is the MoM successfully estimating \(p\)? Does your
+histogram for \(p\) look more or less normal? If so, what theorem might
+explain why this would be the case?}}
+
+\hypertarget{mle-for-binomial-distribution}{%
+\subsubsection{MLE for Binomial
+Distribution}\label{mle-for-binomial-distribution}}
+
+\hypertarget{likelihood-and-log-likelihood}{%
+\paragraph{Likelihood and Log
+Likelihood}\label{likelihood-and-log-likelihood}}
+
+Imagine that you flip a coin \(N\) times, and then repeat the experiment
+\(n\) times. Thus, you have data \(x=x_1, x_2, \dots x_n\) that are the
+number of times you observed a head in each trial. \(p\) is the
+probability of obtaining a head.
+
+\textbf{\emph{Q5: Write down the likelihood and log-likelihood for the
+data. Take the derivative of the negative log-likelihood, set this equal
+to zero, and find the MLE, \(\hat{p}\).}}
+
+\hypertarget{computing-the-likelihood-and-mle-in-r}{%
+\subsubsection{Computing the likelihood and MLE in
+R}\label{computing-the-likelihood-and-mle-in-r}}
+
+Simulate some data with \(p=0.25\), \(N=10\), and 10 replicates.
+Calculate the negative log-likelihood of your simulated data across a
+range of \(p\) (from 0 to 1), and plot them. You may do this by using
+the built in functions in R (specifically \emph{dbinom}) or write your
+own function. This is called a ``likelihood profile'\,'. Plot your
+likelihood profile with a line indicating the true value of \(p\). Add
+lines indicating the MLE \(\hat{p}\) and the MoM estimator for \(p\) to
+your likelihood profile.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pp}\OtherTok{\textless{}{-}}\NormalTok{.}\DecValTok{25}
+\NormalTok{N}\OtherTok{\textless{}{-}}\DecValTok{10}
+\NormalTok{reps}\OtherTok{\textless{}{-}}\DecValTok{10}
+
+\DocumentationTok{\#\# Make one set of data}
+
+\DocumentationTok{\#\# the likelihood is always exactly zero}
+\DocumentationTok{\#\# at p=0,1, so I skip those values}
+\NormalTok{ps}\OtherTok{\textless{}{-}}\FunctionTok{seq}\NormalTok{(}\FloatTok{0.01}\NormalTok{, }\FloatTok{0.99}\NormalTok{, }\AttributeTok{by=}\FloatTok{0.01}\NormalTok{) }
+
+\DocumentationTok{\#\# Likelihood}
+
+
+\DocumentationTok{\#\# MLE/MoM estimators }
+
+\DocumentationTok{\#\# now plot the negative log likelihood profile}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{\emph{Q6: How does your MLE compare to the true value? If you
+chose another version of the random seed, do you get the same answer?}}
+
+\end{document}
