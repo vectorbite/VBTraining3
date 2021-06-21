@@ -1,6 +1,5 @@
 ---
-title: |
- ![](graphics/VB_logo.jpg) VectorBiTE Training 
+title: "VectorBiTE Training"
 description: |
  2021 Virtual VectorBiTE RCN Training   
 site: distill::distill_website
