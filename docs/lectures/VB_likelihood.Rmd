@@ -2,7 +2,9 @@
 title: |
     | VectorBiTE Methods Training
     | Introduction to the Likelihood
-author: "The VectorBiTE Team"
+author: | 
+    | The VectorBiTE Team
+    | (Leah R. Johnson, Virginia Tech)
 date: "Summer 2021"
 output:
   beamer_presentation:
@@ -15,17 +17,15 @@ output:
     colortheme: "seagull"
     fonttheme: "structurebold"
     theme: "Szeged"
-  ioslides_presentation: default
-classoption: aspectratio=169
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(cache = FALSE, 
-                      echo = TRUE, 
+                      echo = FALSE, 
                       message = FALSE, 
                       warning = FALSE,
-                      fig.height=6, 
-                      fig.width = 1.777777*6,
+                      #fig.height=6, 
+                      #fig.width = 1.777777*6,
                       tidy = FALSE, 
                       comment = NA, 
                       highlight = TRUE, 
@@ -33,6 +33,16 @@ knitr::opts_chunk$set(cache = FALSE,
                       crop = TRUE,
                       comment = "#>",
                       collapse = TRUE)
+library(knitr)
+library(kableExtra)
+library(xtable)
+library(viridis)
+
+options(stringsAsFactors=FALSE)
+knit_hooks$set(no.main = function(before, options, envir) {
+    if (before) par(mar = c(4.1, 4.1, 1.1, 1.1))  # smaller margin on top
+})
+knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_knit$set(width = 60)
 source("my_knitter.R")
 #library(tidyverse)
@@ -47,6 +57,7 @@ insert_pause <- make_latex_decorator(". . .", "\n")
 insert_slide_break <- make_latex_decorator("----", "\n")
 insert_inc_bullet <- make_latex_decorator("> *", "*")
 insert_html_math <- make_latex_decorator("", "$$")
+## classoption: aspectratio=169
 ```
 
 
@@ -78,20 +89,33 @@ Likelihoods are another way of defining a distance between our prediction (proba
 
 ## Method of Moments
 
-Before we talk about likelihoods, let's review an easy alternative to finding consistent parameters that assumes a probability distribution: `r myblue("method of moments")`. 
+Before we review likelihoods, let's review an easy alternative to finding consistent parameters that assumes a probability distribution: `r myblue("method of moments")`. 
 
 `r sk2()`
 
-`r insert_pause()`
 
-Consider an $iid$ sample of $n$ observations of a  random variable
+Consider an $iid$ sample of $n$ observations of a random variable
 $\{x_1,\ldots,x_n\}$. You can calculate sample values of the moments of the RV from these, i.e.:
 \begin{align*}
 \bar{x} & =\frac{1}{n} \sum_{i=1}^n x_i \\
 s^2 & = \frac{1}{n} \sum (x-\bar{x})^2
 \end{align*}
 
+
+------------
+
 You estimate the parameters of a probability distribution by ``matching'' up the sample moments with the analytical values of the moments for your probability distribution. 
+
+`r sk2()`
+
+`r mygrn("Example:")` The Poisson distribution has only one parameter $\lambda$. Since the expected value of the Poisson $\mathrm{E}[x] = \lambda$ we set:
+$$
+\lambda = \mathrm{E}[x] = \bar{x}
+$$
+Then the MoM estimator is:
+$$
+\Rightarrow \hat{\lambda} = \bar{x}
+$$
 
 ## Likelihoods
 
@@ -153,14 +177,91 @@ where $j$ denotes the $j^{\mathrm{th}}$ parameter. We usually denote the MLE as 
 
 -----------
 
-The likelihood __`r myred("DOES NOT")`__ tell you the probability that parameters have a certain value, given the data. To obtain that quantity, usually called the ``posterior probability of the parameters'' in Bayesian statistics, you have to use Bayes Theorem. 
+The likelihood __`r myred("DOES NOT")`__ tell you the probability that parameters have a certain value, given the data. 
+
+`r sk2()`
+
+To obtain that quantity, usually called the ``posterior probability of the parameters'' in Bayesian statistics, you have to use Bayes Theorem (later lectures). 
 
 
+---------------
+
+`r myred("A Simple Example")`: MLE for mean midge-wing lengths
+
+`r sk2()`
 
 
--------------
-
-```{r}
-x<-mean(1:10)
+```{r, fig.align="center", fig.height=2.75, fig.width=3.5, dev.args=list(bg='transparent'), no.main=TRUE}
+midgedat<-read.csv("../data/MidgeWingLength.csv", header=TRUE)
+hist(midgedat$WingLength, xlab="Wing Length (mm)", main="",
+     cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
 ```
 
+
+
+## Likelihood profile in R
+
+We interpret the negative log-likelihood (NLL) as a `r myred("function of the parameters")` assuming that the data are constant. We visualize the NLL with a `r myblue("profile")` $\rightarrow$ evaluate the NLL for many possible values of a parameter. The `r mygrn("best")` estimate has the lowest NLL value. 
+
+::: columns
+
+:::: column
+
+
+
+```{r}
+
+nll.norm<-function(par, dat, ...){
+  args<-list(...)
+  
+  mu<-par[1]
+  Y<-dat
+  if(!is.na(args$sigma)){
+    sigma<-args$sigma
+  }else sigma<-par[2]
+  
+  return(-sum(dnorm(Y, mean=mu, sd=sigma, log=TRUE)))
+
+}
+```
+
+```{r, echo=TRUE}
+N<-50
+sigma<-0.1
+mus<-seq(1, 2.5, length=N)
+mynll<-rep(NA, length=50)
+
+for(i in 1:N){
+  mynll[i]<- nll.norm(
+    par=mus[i],
+    dat=midgedat$WingLength, 
+    sigma=sigma
+    )
+}
+```
+
+
+::::
+
+:::: column
+
+```{r, dev.args=list(bg='transparent'), fig.height=2.25, fig.width=2.5, fig.align="center", no.main=TRUE}
+plot(mus, mynll, type="l",
+     cex.main=0.75, cex.lab=0.75, cex.axis=0.75, mgp=c(1.75,1,0),
+     main="midge data NLL", xlab="mu", ylab="neg log likelihood")
+#abline(v=b0, col=2)
+abline(v=mus[which.min(mynll)], col=2)
+```
+
+::::
+
+:::
+
+## Next Steps
+
+There are two sets of practicals to help you get comfortable with likelihoods:
+
+`r sk2()`
+
+1. Mathematical Practice (using Binomial Distribution Example)
+2. Coding Practice (maximum likelihood for SLR using R)
