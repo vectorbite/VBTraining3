@@ -19,8 +19,27 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Pre-work and set-up
 
-<br>
-<br>
+### Hardware and Software
+
+We will be using [R](https://cran.r-project.org/) for all data manipulation and analyses/model fitting. Any operating system (Windows, Mac, Linux) will do, as long as you have R (version 3.6 or higher) installed.
+
+You may use any IDE/ GUI for R (VScode, RStudio, Emacs, etc). For most people, [RStudio](https://www.rstudio.com/) is a good option. Whichever one you decide to use, please make sure it is installed and test it before the workshop. We will have a channel on slack dedicated to software/hardware issues and troubleshooting.
+
+We will also be using Zoom and Slack to facilitate the synchronous portions of the training. Please have these installed in advance. 
+
+### Pre-requisites
+
+We are assuming familiarity with R basics. In addition, we recommend that you do the following:
+
+1. Go to [The Multilingual Quantitative Biologist](https://mhasoba.github.io/TheMulQuaBio/intro.html), and read+work through the [Biological Computing in R Chapter](https://mhasoba.github.io/TheMulQuaBio/notebooks/07-R.html) up to the section on Writing R code. Of course, keep going if you want (although we will cover some similar materials here).
+
+2. In addition / alternatively to pre-work element (1), here are some resources for brushing up on R at the end of the Intro R Chapter you can try. But there are many more resources online (e.g., this and this ) -- pick something that suits your learning style).
+
+3. Review background on introductory probability and statistics (coming soon)
+
+4. Inculcate the coding Jedi inside of you - or the Sith - whatever works.
+
+
 
 # Beginner materials
 
