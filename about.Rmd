@@ -8,7 +8,7 @@ description: |
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-As the VectorBiTE team has developed these materials, we've aimed to provide resources for both guided (during the workshop) and self-led learning. We assume basic familiarity with:
+As the VectorBiTE team has developed [these materials](materials.html), we've aimed to provide resources for both guided (during the workshop) and self-led learning. We assume basic familiarity with:
 
 - [The R Programming Language](https://cran.r-project.org/)
 - Basic calculus (especially the mathematical idea of functions)

@@ -14,16 +14,44 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Overview to the materials
 
+<br>
+<br>
+
 # Pre-work and set-up
+
+<br>
+<br>
 
 # Beginner materials
 
-### Example 1
+### Introduction to the VectorByte databases
 
-- [Lecture slides](lectures/VB_likelihood.pdf)
-- Lecture video
-- [Activity 1](example.html)
+### Data Wrangling in R
+
+### Introductin to Model Fitting and Selection
+
+
+<br>
+<br>
 
 # Intermediate materials
 
+### Fitting Thermal Performance Curves (TPCs)
+
+### Simple Models for Temporal Abundance Data
+
+### Review of Likelihoods 
+
+- [Lecture slides](lectures/VB_likelihood.pdf),  Lecture video, [Analytic Practical 1](activities/VB_likelihood_activity.html) 
+
+<br>
+<br>
+
 # Advanced materials
+
+### Bayesian Basics 
+
+### Fitting Bayesian TPCs
+
+### Introduction to Bayesian on State-Space models for Abundance Data
+

@@ -1,13 +1,10 @@
 ---
-title: "VectorBiTE 2019 Training 2019"
-author: "Your Name Here"
-date: "June 2019"
+title: "Review of Likelihoods"
+author: "VectorBiTE Team"
+date: "Summer 2021"
 output:
   html_document: default
-  pdf_document:
-    keep_tex: yes
-    latex_engine: xelatex
-subtitle: 'Activity: Method of Moments and Likelihoods'
+subtitle: 'Analytic Activity: Method of Moments and Likelihoods'
 graphics: yes
 ---
 
