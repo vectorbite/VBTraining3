@@ -110,20 +110,17 @@ $$
 
 The fundamental differences between classical and Bayesian methods is what is fixed and what is random in an analysis.
 
-```{r, echo=FALSE, eval=FALSE}
 `r sk2()`
-\begin{center}
-\begin{tabular}{|l|c|c|}
-\hline
-Paradigm & Fixed & Random  
-\hline
-Classical & param ($\theta$) & data ($Y$) 
-\hline
-Bayesian & data ($Y$) & param ($\theta$) 
-\hline
-\end{tabular}
-\end{center}
-``` 
+
+
+| Paradigm    |   Fixed            |Random             |
+|:-----------:|:------------------:|:-----------------:|
+| Classical   | param ($\theta$)   | data ($Y$)        |
+| Bayesian    | data ($Y$)         | param ($\theta$)  | 
+
+
+
+
 
 
 ## Why/Why Not Bayesian Statistics?
@@ -258,7 +255,7 @@ The most popular 95% confidence interval for a population proportion is the `r m
 $$
 \bar{y} \pm 1.96 \sqrt{\bar{y}(1-\bar{y})/n}.
 $$
-This has the correct _`r myblue("asymptotic")`_ coverage, but __$y=0$__ is still problematic!
+This has the correct _`r myblue("asymptotic")`_ coverage, but __$y=0$__ `r myred("is still problematic")`!
 
 ## Conjugate Bayesian Models
 
@@ -441,27 +438,24 @@ The 95 % HPD region is [0.04, 0.48] which is narrower than the quantile-based CI
 
 -----------
 
-`r myred("Exercise: is a treatment for cancer effective?")`
+`r myred("Exercise: Is a treatment for cancer effective?")`
 
-We have data on $n$ cancer patients that have been given a particular treatment. Our outcome variable is whether or not it was ``effective'':
+We have data on $n$ cancer patients that have been given a treatment. Our outcome variable is whether or not it was ``effective'':
 
-```{r, echo=FALSE, eval=FALSE}
-{\footnotesize
 
-\begin{center}
- \begin{tabular}{lll}
-Patient & Effectiveness & Numerical Data  
-1& N& 0 
-2&N&0 
-3&Y&1 
-\vdots &\vdots &\vdots  
-\end{tabular}
-\end{center}
+| Patient  | Effectiveness | Numerical Data | 
+|:--------:|:-------------:|:--------------:|
+| 1        |   N           |     0          |
+| 2        |   N           |     0          |
+| 3        |   Y           |     1          |
+| $\vdots$ |  $\vdots$     |     $\vdots$   |
+
+
 The appropriate sampling model for each patient is a Bernoilli:
 $$Y_i|\theta  \stackrel{iid}{\sim} f(Y|\theta) = \text{Bern}(\theta)$$ 
-where $\theta$ is the success rate of the treatment. Based on this, write down the likelihood for the $n$ patients. Then, assuming a $\mathrm{Beta}(a,b)$ prior for $\theta$ find the posterior distribution for $\theta|Y$. Does this look familiar?
-}
-```
+where $\theta$ is the success rate of the treatment. Write down the likelihood for the $n$ patients. Then, assuming a $\mathrm{Beta}(a,b)$ prior for $\theta$, find the posterior distribution for $\theta|Y$. Does this look familiar?
+
+
 
 
  
