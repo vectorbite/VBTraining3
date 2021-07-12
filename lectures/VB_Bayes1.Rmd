@@ -435,8 +435,7 @@ Numerically, we collect the highest density points with cumulative density great
 The 95 % HPD region is [0.04, 0.48] which is narrower than the quantile-based CI, yet both contain 95 % probability.
  
 
-
------------
+----------------------
 
 `r myred("Exercise: Is a treatment for cancer effective?")`
 
@@ -454,6 +453,13 @@ We have data on $n$ cancer patients that have been given a treatment. Our outcom
 The appropriate sampling model for each patient is a Bernoilli:
 $$Y_i|\theta  \stackrel{iid}{\sim} f(Y|\theta) = \text{Bern}(\theta)$$ 
 where $\theta$ is the success rate of the treatment. Write down the likelihood for the $n$ patients. Then, assuming a $\mathrm{Beta}(a,b)$ prior for $\theta$, find the posterior distribution for $\theta|Y$. Does this look familiar?
+
+
+
+##  Next Steps
+
+Next you'll complete a practical where you conduct a conjugate Bayesian analysis for the mean of a normal distribution on the midge data introduced in the likelihood chapter. You'll also visualize the effect of different prior choices on the posterior distribution. You'll also use the results of this when you start trying out MCMC (with JAGS) to approximate posterior distributions numerically
+
 
 
 
