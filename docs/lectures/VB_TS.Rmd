@@ -1,0 +1,1231 @@
+---
+title: |
+    | VectorBiTE Methods Training
+    | Introduction to Auto-correlated Data and Time Series
+author: | 
+    | The VectorBiTE Team
+    | (Leah R. Johnson, Virginia Tech)
+date: "Summer 2021"
+output:
+  beamer_presentation:
+    fig_caption: no
+    includes:
+      in_header: header.tex
+    latex_engine: pdflatex
+    slide_level: 2
+    highlight: tango
+    colortheme: "seagull"
+    fonttheme: "structurebold"
+    theme: "Szeged"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(cache = FALSE, 
+                      echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE,
+                      #fig.height=6, 
+                      #fig.width = 1.777777*6,
+                      tidy = FALSE, 
+                      comment = NA, 
+                      highlight = TRUE, 
+                      prompt = FALSE, 
+                      crop = TRUE,
+                      comment = ">",
+                      collapse = TRUE)
+library(knitr)
+library(kableExtra)
+library(xtable)
+library(viridis)
+
+options(stringsAsFactors=FALSE)
+knit_hooks$set(no.main = function(before, options, envir) {
+    if (before) par(mar = c(4.1, 4.1, 1.1, 1.1))  # smaller margin on top
+})
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(width = 60)
+source("my_knitter.R")
+#library(tidyverse)
+#library(reshape2)
+#theme_set(theme_light(base_size = 16))
+make_latex_decorator <- function(output, otherwise) {
+  function() {
+      if (knitr:::is_latex_output()) output else otherwise
+  }
+}
+insert_pause <- make_latex_decorator(". . .", "\n")
+insert_slide_break <- make_latex_decorator("----", "\n")
+insert_inc_bullet <- make_latex_decorator("> *", "*")
+insert_html_math <- make_latex_decorator("", "$$")
+## classoption: aspectratio=169
+set.seed(12345)
+```
+
+
+
+## Learning Objectives
+
+In this module you will:
+
+1. Learn what makes time series (TS) data different from other regression data.
+1. See how to visualize and learn about autocorrelation in a TS.
+1. Learn how to use basic regression techniques to fit models that include AR, trending, and periodic components.
+1. Learn what diagnostics to examine to determine if your models are fitting well.  
+
+## Time series data and dependence
+
+Time-series data are simply a collection of observations
+gathered over time.
+For example, suppose $y_1, \ldots, y_T$ are
+ 
+-  daily temperature,
+-  solar activity,
+-  CO$_2$ levels,
+-  GDP,
+-  yearly population size.
+ 
+
+`r sk2()`
+ `r myblue("In each case, we might expect what happens at time $t$ to be
+correlated with time $t-1$.")`
+
+ 
+
+---------------------------
+
+
+Suppose we measure temperatures, daily, for several years.
+
+ `r sk2()`
+Which would work better as an estimate for today's temp:
+ 
+- The average of the temperatures from the previous year? 
+- The temperature on the previous day? 
+
+insert_slide_break() 
+
+ `r sk2()`
+How would this change if the readings were  ___iid $\mathcal{N}(\mu, \sigma^2)$___?
+
+ `r sk2()` 
+`r myred("Correlated errors require fundamentally different techniques.")`
+
+ 
+
+  
+----------------------- 
+
+ `r myblue("Example:")` $Y_t =$ average daily temp. at ROA, Feb-Mar 2018.
+
+```{r, echo=TRUE, fig.align="center", fig.height=2, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+weather <- read.csv("../data/Roanoke_weather2018.csv")
+days<-32:90 ## This picks out February and March
+weather<-weather[days,c(1,3,7)]; names(weather)[3]<-"temp"
+plot(weather$temp, xlab="day", ylab="temp (F)", type="l", 
+     col=2, lwd=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+```
+
+ 
+ 
+- "sticky" sequence: today tends to be close to yesterday.
+ 
+
+ 
+
+
+  
+----------------------- 
+
+ `r myblue("Example:")` $Y_t =$ monthly UK deaths due to lung infections
+
+```{r, echo=TRUE, fig.align="center", fig.height=2, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+ld<-as.vector(ldeaths)
+plot(ld, xlab="month", ylab="deaths", type="l", 
+     col=4, lwd=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+```
+ 
+ 
+- The same pattern repeats itself year after year.
+ 
+  
+----------------------- 
+
+```{r, echo=TRUE, fig.align="center", fig.height=2, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+rand<-rnorm(200)
+plot(rand, xlab="t", ylab="Y_t", type="l", 
+     col=6, lwd=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+```
+
+`r sk2()`
+
+- It is tempting to see patterns even where they don't exist.
+ 
+
+
+## Checking for dependence
+
+
+To see if $Y_{t-1}$ would be useful for predicting $Y_t$, just plot them together and see if there is a relationship.
+
+```{r, echo=FALSE, fig.align="center", fig.height=2.2, fig.width=3.25, dev.args=list(bg='transparent'), no.main=TRUE}
+
+plot(weather$temp[1:58], weather$temp[2:59], pch=20, col=4,
+     main="Daily Temp at ROA", xlab="temp(t-1)",
+     ylab = "temp(t)", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0), 
+     cex.main=0.75)
+text(x=31, y=67, col=2, cex=0.75,
+     labels=paste("Corr =", round(cor(weather$temp[1:58],
+       weather$temp[2:59]),2)))
+```
+
+- Correlation between $Y_t$ and $Y_{t-1}$ is called  `r myred("autocorrelation")`.
+ 
+ 
+ 
+----------------------- 
+
+ We can plot $Y_t$ against $Y_{t-\ell}$ to see  $\ell$`r myred("-period lagged relationships")`.
+ 
+```{r, echo=FALSE, fig.align="center", fig.height=2.1, fig.width=4.5, dev.args=list(bg='transparent'), no.main=TRUE}
+par(mfrow=c(1,2), mar = c(3.1, 1.75, 1.1, 1.1))
+plot(weather$temp[1:57], weather$temp[3:59], pch=20, col=4,
+     main="", xlab="temp(t-2)", ylab = "temp(t)", 
+     cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0), 
+     cex.main=0.75)
+text(x=36, y=67, col=2, cex=0.65, 
+     labels=paste("Lag 2 Corr =", round(cor(weather$temp[1:57],
+       weather$temp[3:59]),2)))
+plot(weather$temp[1:56], weather$temp[4:59], pch=20, col=4,
+     main="", xlab="temp(t-3)", ylab = "temp(t)",
+     cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0), 
+     cex.main=0.75)
+text(x=36, y=67, col=2, cex=0.65,
+     labels=paste("Lag 3 Corr =", round(cor(weather$temp[1:56],
+       weather$temp[4:59]),2)))
+
+```
+`r sk1()`
+
+- Correlation appears to be getting weaker with increasing $\ell$.
+ 
+
+ 
+
+  
+## Autocorrelation
+
+To summarize the time-varying dependence, compute lag-$\ell$ correlations for
+$\ell=1,2,3,\ldots$
+
+`r sk1()`
+In general, the autocorrelation function (ACF) for $Y$ is
+\[ 
+r(\ell) = \mathrm{cor}(Y_t, Y_{t-\ell})
+\]
+
+
+For our Roanoke temperature data:
+
+```{r, echo=TRUE}
+print(acf(weather$temp, plot=FALSE))
+```
+
+
+
+
+ 
+----------------------- 
+
+
+R's ${\tt acf}$ function provides a visual summary of our data dependence:
+
+`r sk1()`
+ 
+```{r, echo=TRUE, fig.align="center", fig.height=2.5, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+acf(weather$temp, cex.lab=0.75, cex.axis=0.75, main="")
+``` 
+
+
+
+
+
+
+
+----------------------- 
+
+The lung infection data shows an alternating dependence
+structure which causes time series oscillations.
+
+ 
+`r sk1()`
+ 
+```{r, echo=TRUE, fig.align="center", fig.height=2.5, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+acf(ld, cex.lab=0.75, cex.axis=0.75, main="")
+```  
+
+ 
+
+----------------------- 
+
+An acf plot for $iid$ normal data shows no significant correlation.
+
+`r sk1()`
+
+```{r, echo=TRUE, fig.align="center", fig.height=2.5, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+acf(rand, cex.lab=0.75, cex.axis=0.75, main="")
+```   
+
+ 
+
+
+## Autoregression
+
+How do we model data that exhibits autocorrelation?
+
+ `r sk2()` 
+Suppose $Y_1 = \varepsilon_1$, $Y_2 = \varepsilon_{1} +
+\varepsilon_{2}$, $Y_3 = \varepsilon_{1} + \varepsilon_{2} +
+\varepsilon_{3}$, etc.
+
+ 
+  Then 
+$Y_t =  \sum_{i=1}^{t}\varepsilon_i = Y_{t-1} + \varepsilon_t$ and $\mathds{E}[Y_t] = Y_{t-1}$.
+ 
+
+`r sk1()`
+
+This is called a  `r myred("random walk ")`model for $Y_t$: 
+ 
+- the expectation of what will happen is always what happened most recently.
+ 
+
+ `r sk2()`
+Even though $Y_t$ is a function of errors going all the way back to the 
+beginning, you can write it as depending only on $Y_{t-1}$.
+ 
+
+ 
+----------------------- 
+
+Random walks are just a version of a more general model ...
+
+`r sk2()`
+The  `r myblue("autoregressive ")`model of order one holds that
+\[
+  AR(1): Y_t = \beta_0 + \beta_1Y_{t-1} + \varepsilon_t,
+ \;\;\; \varepsilon_t \stackrel{\mathrm{iid}}{\sim}\mathcal{N}(0, \sigma^2).
+\]
+This is just a SLR model of $Y_t$ regressed onto lagged $Y_{t-1}$.
+
+`r sk2()` 
+
+It assumes all of our standard regression model conditions.
+
+- The residuals should look $iid$ and be uncorrelated with $\hat{Y}_t$.
+- All of our standard diagnostics and transforms still apply.
+ 
+
+ 
+
+ 
+----------------------- 
+
+\[
+  AR(1): Y_t = \beta_0 + \beta_1 Y_{t-1} + \varepsilon_t
+\]
+
+Again, $Y_t$ depends on the past __only through $Y_{t-1}$__.  
+
+`r sk1()`
+
+-  ___`r myblue("Previous lag values")` ($Y_{t-2}, Y_{t-3},\ldots$) `r myblue("do not help predict")` $Y_t$ `r myblue("if you already know")` $Y_{t-1}$.___
+ 
+
+`r sk2()`
+
+Think about daily temperatures:  
+ 
+- If I want to guess tomorrow's temperature (without the help of a meterologist!), it is sensible to base my prediction on today's temperature, ignoring yesterday's.
+ 
+ 
+
+  
+----------------------- 
+
+
+For the Roanoke temperatures, there was clear autocorrelation when we plotted above. 
+
+Let's fit a linear model between temperature and its one step lag value:
+
+`r sk2()`
+```{r, echo=TRUE}
+tempreg <- lm(weather$temp[2:59] ~ weather$temp[1:58])
+```
+
+`r sk2()`
+
+Then look at the summary (see next page) ....The autoregressive term ($b_1 \approx 0.66$) is highly significant!
+
+
+----------------------- 
+
+
+```{r, echo=TRUE}
+summary(tempreg) 
+```
+
+
+ 
+
+
+  
+----------------------- 
+
+We can check residuals for any "left-over" autocorrelation.
+
+`r sk1()`
+
+```{r, echo=TRUE, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+acf(tempreg$residuals, cex.lab=0.75, cex.axis=0.75, main="")
+```  
+ 
+- Looks like we've got a good fit!
+
+ 
+  
+----------------------- 
+
+For the lung infection data, the AR term is also highly significant:
+
+```{r, echo=TRUE}
+lungreg <- lm(ld[2:72] ~  ld[1:71]); summary(lungreg)
+```
+
+
+
+
+----------------------- 
+
+But residuals show a clear pattern of left-over autocorrelation:
+
+`r sk1()`
+
+```{r, echo=TRUE, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+acf(lungreg$residuals, cex.lab=0.75, cex.axis=0.75, main="")
+```  
+
+- We'll talk later about how to model this type of pattern ...
+ 
+
+
+
+----------------------- 
+
+Many different types of series may be written as an AR$(1)$.
+\[
+AR(1): Y_t = \beta_0 + \beta_1 Y_{t-1} + \varepsilon_t
+\]
+
+__`r myblue("The value of")` $\beta_1$  `r myblue("is key!")`__
+ 
+- If $|\beta_1| = 1$, we have a __random walk__.
+- If $|\beta_1| > 1$, the series __explodes__.
+- If $|\beta_1| < 1$, the values are __mean reverting__.
+ 
+
+ 
+
+ 
+## Random walk: $\beta_1 = 1$
+
+In a random walk, the series just wanders around.
+ 
+`r sk2()`
+
+```{r, echo=FALSE, fig.align="center", fig.height=2.5, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+rw <- rnorm(1)
+for(i in 2:200) rw <- c(rw, rw[i-1] + rnorm(1))
+## pdf("randwalk.pdf", width=6, height=5)
+plot(rw, pch=20, col=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+lines(rw, col=4)
+``` 
+
+ 
+
+ 
+----------------------- 
+
+Autocorrelation of a random walk stays high for a long time.
+
+`r sk2()`
+
+```{r, echo=FALSE, fig.align="center", fig.height=2.5, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE} 
+acf(rw, lwd=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+``` 
+
+ 
+
+----------------------- 
+
+The random walk has some special properties ...
+
+ `r sk2()`
+$Y_t - Y_{t-1} = \beta_0 + \varepsilon_t$, 
+and $\beta_0$ is called the "drift parameter".
+
+ `r sk2()`
+ 
+The series is  `r myblue("nonstationary")`: 
+ 
+- it has no average level that it wants to be near, 
+but rather just wanders off into space.
+ 
+`r sk2()` 
+
+The random walk  `r myred("without drift")` ($\beta_0 = 0$) is a common model for simple processes
+ 
+- since  $\mathds{E}[Y_t] = \mathds{E}[Y_{t-1}]$}, e.g., `r myblue("tomorrow")` $\approx$ `r myblue("today")`
+ 
+
+
+----------------------- 
+
+ `r myblue("Example:")` monthly Dow Jones composite index, 2000--2007.
+
+```{r, echo=T}
+dja <- read.csv("../data/dja.csv")$DJ
+```
+
+ 
+```{r, echo=F, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE} 
+plot(dja, type="l", col=4, xlab="day", ylab="DJA", 
+     cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+``` 
+
+ 
+ 
+- Appears as though it is just wandering around.
+ 
+ 
+
+
+ 
+----------------------- 
+
+
+Let's do our regression and check the output:
+
+```{r, echo=TRUE}
+n <- length(dja)
+ARdj <- lm(dja[2:n] ~ dja[1:(n-1)])
+``` 
+
+Sure enough, our regression indicates a random walk ($b_1 \approx 1$)
+
+- ($b_0 > 0$, but not enough data to be  `r myred("sure")` of positive drift.)
+
+(see summary, next page)
+
+----------------------- 
+
+
+```{r, echo=TRUE}
+summary(ARdj)  
+```
+
+ 
+
+
+  
+----------------------- 
+
+When you switch to returns, however, it's just white noise.
+
+```{r, echo=T}
+returns <- (dja[2:n]-dja[1:(n-1)])/dja[1:(n-1)]
+```
+
+```{r, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE} 
+
+plot(returns, type="l", col=3, xlab="day", ylab="DJA Return",
+     cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+``` 
+
+
+$(Y_t - Y_{t-1})/Y_{t-1}$ appears to remove the dependence, and now the regression model finds nothing significant. This is common with random walks  $\Rightarrow Y_{t}- Y_{t-1}$ is iid.
+
+ 
+----------------------- 
+
+
+```{r, echo=T}
+ret <- lm(returns[2:n] ~ returns[1:(n-1)]); summary(ret) 
+```
+
+
+ 
+
+
+## Exploding series $\beta_1 = 1.02$
+
+For AR term $>1$, the $Y_t$'s move exponentially far from $Y_1$.
+
+```{r, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE} 
+
+xs <- rnorm(1)
+for(i in 2:200) xs <- c(xs, 1.02*xs[i-1]+rnorm(1))
+## pdf("exploding.pdf", width=6, height=5)
+plot(xs, pch=20, col=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+lines(xs, col=4)
+
+``` 
+ 
+- Useless for modeling and prediction.
+ 
+
+
+
+
+## Stationary series: $\beta_1 = 0.8$
+
+For AR term $<1$, $Y_t$ is always pulled back towards the mean.
+
+```{r, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE} 
+
+ss <- rnorm(1)
+for(i in 2:200) ss <- c(ss, 0.8*ss[i-1]+rnorm(1))
+## pdf("stationary.pdf", width=6, height=5)
+plot(ss, pch=20, col=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+lines(ss, col=4)
+abline(h=0, lty=2, col=8)
+
+
+``` 
+ 
+- These are the most common, and most useful, type of AR series.
+
+
+ 
+
+----------------------- 
+
+Autocorrelation for the stationary series drops off right away.
+
+```{r, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE} 
+acf(ss, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+
+``` 
+
+- The past matters, but with limited horizon.
+ 
+
+ 
+
+ 
+## Mean reversion
+
+An important property of stationary series is  `r myred("mean reversion")`.
+
+ `r sk2()`
+Think about shifting both $Y_t$ and $Y_{t-1}$ by their mean $\mu$.
+\[ 
+  Y_t - \mu = \beta_1 (Y_{t-1} - \mu) +\varepsilon_t
+\]
+Since $|\beta_1| < 1$, $Y_t$ is expected to be closer to $\mu$
+than $Y_{t-1}$.
+
+ `r sk2()` 
+Mean reversion is all over, and helps predict future behavior:
+ 
+- weekly sales numbers,
+- daily temperature.
+ 
+
+ 
+
+ 
+## Negative correlation: $\beta_1 = -0.8$
+
+It is also possible to have negatively correlated AR(1) series.
+
+```{r, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE} 
+
+ns <- rnorm(1)
+for(i in 2:100) ns <- c(ns, -0.8*ns[i-1]+rnorm(1))
+## pdf("negcor.pdf", width=6, height=5)
+plot(ns, pch=20, col=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+lines(ns, col=4)
+abline(h=0, lty=2, col=8)
+
+```  
+
+- But you see these far less often in practice.
+
+ 
+## Summary of AR(1) behavior
+
+- $|\beta_1| < 1$: The series has a mean level to which it reverts.  For positive $\beta_1$, the series tends to wander above or below the mean level for a while.  For negative $\beta_1$, the series tends to flip back and forth around the mean. The series is stationary, meaning that the mean level does not change over time.  
+- $|\beta_1| = 1$: A random walk series. The series has no mean level and, thus, is called nonstationary.  The drift parameter $\beta_0$ is the direction in which the series wanders.
+- $|\beta_1| > 1$: The series explodes, is nonstationary, and pretty much useless.
+ 
+
+
+## AR($p$) models
+
+It is possible to expand the AR idea to higher lags
+\[
+  AR(p): Y_t = \beta_0 + \beta_1Y_{t-1} + \cdots + \beta_pY_{t-p} + \varepsilon.
+\]
+
+
+However, it is seldom necessary to fit AR lags for $p>1$.
+ 
+- Like having polynomial terms higher than 2, this just isn't usually
+required in practice.
+- You lose all of the stationary/non-stationary intuition.
+- Often, the need for higher lags is symptomatic of (missing) a more
+persistent trend or periodicity in the data ...
+ 
+ 
+
+ 
+
+
+## Trending series
+
+Often, you'll have a linear trend in your time series.
+ 
+$\Rightarrow$ AR structure, sloping up or down in time.
+ 
+`r sk2()`
+ 
+```{r, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE} 
+
+ss <- rnorm(1)
+for(i in 2:200) ss <- c(ss, 0.8*ss[i-1]+rnorm(1))
+
+## pdf("artime.pdf", width=6, height=4)
+sst <- ss - (1:200)/20
+plot(sst, cex=0.8, col="blue", xlab="time", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+
+```  
+ 
+
+ 
+
+  
+----------------------- 
+
+
+This is easy to deal with: just put "time" in the model.
+
+
+AR with linear trend:
+\[
+  Y_t =  \beta_0 + \beta_1Y_{t-1} +
+\beta_2t + \varepsilon_t
+\]
+
+```{r, echo=T}
+t <- 1:199
+sst.fit <- lm(sst[2:200] ~ sst[1:199] + t)
+```
+
+
+----------------
+
+```{r, echo=T}
+summary(sst.fit)  ## abbreviated output
+```
+
+
+
+
+## Periodic models
+
+It is very common to see  `r myred("seasonality")` or  `r myred("periodicity")` in series. 
+ 
+- Temperature goes up in Summer and down in Winter.  
+- Gas consumption (used for heating) would do the opposite.
+ 
+
+ `r sk1()`
+Recall the monthly lung infection data:
+  
+```{r, fig.align="center", fig.height=2, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+plot(ld, xlab="month", ylab="deaths", type="l", 
+     col=4, lwd=2, cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+```
+
+ 
+- Appears to oscillate on a 12-month cycle.
+ 
+
+
+ 
+----------------------- 
+
+The straightforward solution:  `r myred("Add periodic predictors")`.
+
+`r sk1()`
+$\mathrm{Period}\!-\!k~\mbox{model}\!:$
+\[
+  Y_t = \beta_0 + \beta_1\sin(2\pi t /k) + \beta_2\cos(2\pi t /k)
++ \varepsilon_t 
+\]
+
+
+Remember your  `r myred("sine ")`and  `r myblue("cosine")`!
+ 
+```{r, fig.align="center", fig.height=2, fig.width=4.75, dev.args=list(bg='transparent'), no.main=TRUE}
+
+t <- seq(0,35, length=100)
+## pdf("sincos.pdf", width=6, height=3)
+par(mfrow=c(1,2))
+plot(t, sin(2*pi*t/12), type="l", col="red", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0)) 
+plot(t, cos(2*pi*t/12), type="l", col="blue",  cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0)) 
+```
+ 
+- Repeating themselves every $2\pi$.
+ 
+
+ 
+
+ 
+----------------------- 
+
+$\mathrm{Period}\!-\!k~\mbox{model}\!:$
+\[
+  Y_t = \beta_0 + \beta_1\sin(2\pi t /k) + \beta_2\cos(2\pi t /k)
++ \varepsilon_t 
+\]
+It turns out that you can represent `r myblue("any")` smooth periodic functionas a sum of sines and cosines.
+
+ `r sk2()`
+You choose $k$ to be the number of "times" in a single period.
+ 
+- For monthly data, $k = 12$ implies an annual cycle.
+- For quarterly data, usually $k=4$.
+- For hourly data, $k=24$ gives you a daily cycle.
+ 
+
+ 
+
+
+
+----------------------- 
+
+Let's fit an AR with sine/cosine predictors:
+\[
+  Y_t =  \beta_0 + \beta_1Y_{t-1} +
+\beta_2\sin(2\pi t /k) + \beta_3\cos(2\pi t /k)  + \varepsilon_t
+\]
+We want to make new predictors/dataframe, much like when we add polynomial terms, and then fit.
+
+```{r, echo=T}
+tmax<-length(ld)
+t <- 2:tmax
+YX <- data.frame(ld=ld[2:tmax], ldpast=ld[1:(tmax-1)], t=t,
+                 sin12=sin(2*pi*t/12), cos12=cos(2*pi*t/12))
+lunglm <- lm(ld ~ ldpast + sin12 + cos12, data=YX)
+```
+
+-----------------
+
+```{r, echo=T}
+summary(lunglm) ## abbreviated output
+```
+
+
+
+
+ 
+----------------------- 
+
+The model predictions look pretty good!
+
+`r sk1()`
+ 
+```{r, fig.align="center", fig.height=2.5, fig.width=4.25, dev.args=list(bg='transparent'), no.main=TRUE}
+plot(ld, xlab="year",
+     ylab="monthlydeaths", type="l", col=4, lty=2,
+     xaxt="n", lwd=2, ylim=c(0.9*(min(ld)), 1.05*max(ld)), 
+     cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+axis(1, at=(0:6)*12, labels=1974:1980)
+lines(t, lunglm$fitted, col=2, lwd=2)
+legend("topleft", legend=c("data", "fitted"), lty=c(2,1), 
+       col=c(4,2), cex=0.75)
+``` 
+
+ 
+ 
+- Sine and cosine trends seem to capture the periodicity.
+ 
+
+ 
+
+
+ 
+----------------------- 
+
+The residuals look pretty good.
+
+```{r, fig.align="center", fig.height=2, fig.width=4.75, dev.args=list(bg='transparent'), no.main=TRUE}
+par(mfrow=c(1,2))
+plot(lunglm$resid, xlab="year", ylab="residual", type="l",
+     col=4, main="residuals in time",  xaxt="n", lwd=2,
+     cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0), cex.main=0.7) 
+abline(h=0, col=2, lwd=2)
+axis(1, at=(0:6)*12, labels=1974:1980, cex.axis = 0.75)
+acf(lunglm$resid, lwd=2,cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0), 
+    cex.main=0.7)
+```
+
+-  `r myred("Maybe a bit of downward linear trend?")`
+ 
+
+ 
+
+
+ 
+## Alternative Periodicity
+
+
+An alternative way to add periodicity would be to simply add
+a dummy variable for each month (${\tt   feb, mar, apr, ...}$).
+
+ `r sk2()`
+ 
+- This achieves basically the same fit as above, without requiring you to
+add sine or cosine.
+- However, this takes 11 periodic parameters while we use only 2.
+
+ 
+
+ 
+----------------------- 
+
+
+I like to think of the periodicity as a smooth oscillation, 
+with sharp day/month effects
+added for special circumstances.
+
+ `r sk2()`
+ 
+- Requires more thought, but leads to better models.
+- The $\sin+\cos$ technique works regardless of the 
+number of increments in a period (e.g. 365 days).
+ 
+
+ `r sk2()` `r sk2()`  `r myred("The exception: ")`
+ 
+- Since quarterly data has a period of only 4,
+it is often fine to just add "quarter" effects.
+ 
+ 
+
+
+ 
+## Time series Sum-Up
+
+As with other regression approaches, there are many possible models; you can use BIC with ${\tt extractAIC(reg, k=log(n))}$ to compare and
+choose.
+
+ `r sk2()`
+The tools here are good, but not the best:
+ 
+- In many situations you want to allow for $\beta$ or $\sigma$
+parameters that can change in time.
+- This can leave us with some left-over autocorrelation.
+- These approaches only work for data that are evenly spaced with no gaps 
+ 
+
+ 
+
+----------------------- 
+
+`r myblue("Practice:")` In the Roanoke Airport weather dataset, I used the average temperature (${\tt TAVG}$), but there are additional columns.
+
+ `r sk2()`
+
+For one of either ${\tt TMIN}$ or ${\tt TMAX}$
+ 
+- Plot the data from Feb and March.
+- Plot the correlation between temperature at time $t$ and $t-1$ and calculate the correlation. 
+- Plot the ACF of the time series. 
+- Fit a simple autoregressive model to the TS data. What is your coefficient and what do you conclude about the kind of behavior that your TS exhibits?
+ 
+ 
+ 
+----------------------- 
+
+`r myblue("Practice:")` Monthly Sunspot Data. 
+
+ `r sk1()`
+Data on the mean number of sunspots in each month from 1749 to 2013 are available in R as ${\tt sunspot.month}$.
+ 
+- Plot the sunspot data. What do you observe? Do you think you would want to take any transformations of the data?
+- Plot the correlation between the number of sunspots at time $t$ and $t-1$ and calculate the correlation. 
+- Plot the ACF of the time series (note -- you'll need to make the max lag very large). 
+- Based on the previous parts, propose a simple AR model plus a periodic and trend component. Check your residuals and your predictions. How well did you do? If you have trouble fitting, try slightly changing the frequency of your periodic component.
+
+
+
+## Next Steps
+
+In the practical for this component we'll step you through fitting a variety of models with trending, seasonal, and AR components for a classic time series data set. You'll then get to try it yourself on dengue case data. 
+
+
+
+
+
+
+
+```{r, echo=FALSE, eval=FALSE}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\iffalse
+
+ 
+----------------------- 
+
+\vspace{-0.15cm}
+ `r myblue("Putting it all together: ")`Airline data
+ 
+- $Y_t = $ monthly total international passengers, 1949-1960.
+ 
+
+ 
+\includegraphics[scale=0.5,trim=10 20 0 60]{airline_new}
+ 
+
+ 
+ 
+- Increasing annual oscillation and positive linear trend.
+ 
+
+ 
+
+ 
+----------------------- 
+
+\vspace{-0.15cm}
+The data shows a strong persistence in correlation.
+
+ 
+\includegraphics[scale=0.55,trim=10 20 0 20]{airlineacf_new}
+ 
+
+\vspace{-0.15cm}
+Annual (12 month) periodicity shows up here as well.
+
+ 
+
+ 
+----------------------- 
+
+\vspace{-0.1cm}
+Fitting the model: first, don't forget your fundamentals!
+ 
+- The series variance is increasing in time.
+- Passenger numbers are like sales volume.
+-  `r myred("We should be working on log scale!}
+ 
+
+ 
+\includegraphics[scale=0.5,trim=10 20 0 50]{logairline_new}
+ 
+
+ 
+
+  
+----------------------- 
+
+The series shows a linear trend, an oscillation of period 12, 
+and we expect to find autoregressive errors.  
+
+ 
+ `r myred("
+\begin{align*}
+\log(Y_t) &= \beta_0 + \beta_1 \log(Y_{t-1}) + \beta_2t \\
+&\;\;\; + \beta_3\sin\left(\frac{2\pi t }{12}\right) + \beta_4\cos\left(\frac{2\pi t }{12}\right)
++ \varepsilon_t 
+\end{align*}
+}
+
+ 
+ `r myblue("\footnotesize
+\begin{verbatim}
+> t <- 2:nrow(airline)
+> YX <- data.frame(logY=log(airline$Passengers[2:144]),
++   logYpast=log(airline$Passengers[1:143]), t=t,
++   sin12=sin(2*pi*t/12), cos12=cos(2*pi*t/12))
+> airlm <- lm(logY ~ logYpast + t + sin12 + cos12, data=YX)
+\end{verbatim}
+}
+
+ 
+
+  
+----------------------- 
+
+\vspace{-0.25cm}
+ `r myblue("\footnotesize
+\begin{verbatim}
+> summary(airlm) ## abbreviated output
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  2.5323909  0.3603010   7.029 8.77e-11 ***
+logYpast     0.4748286  0.0749506   6.335 3.12e-09 ***
+t            0.0052759  0.0007703   6.849 2.25e-10 ***
+sin12        0.0040818  0.0126512   0.323    0.747    
+cos12       -0.0960295  0.0119032  -8.068 3.12e-13 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.07929 on 138 degrees of freedom
+Multiple R-squared:  0.9681,  Adjusted R-squared:  0.9672 
+F-statistic:  1047 on 4 and 138 DF,  p-value: < 2.2e-16
+\end{verbatim}
+}
+
+ 
+
+ 
+----------------------- 
+
+\vspace{-0.35cm}
+The model predictions look pretty good!
+ 
+\includegraphics[scale=0.58,trim=10 10 0 50]{airpred_new}
+ 
+
+ 
+ 
+- Sine and cosine trends seem to capture the periodicity.
+ 
+
+ 
+
+
+ 
+----------------------- 
+
+\vspace{-0.15cm}
+However, a closer look exposes residual autocorrellation.
+
+ 
+\includegraphics[scale=0.68,trim=20 5 0 35]{airresid_new}
+ 
+
+ 
+\hfill \begin{minipage}{5cm}
+ 
+-  `r myred("How can we fix this?}
+ 
+\end{minipage}
+
+ 
+
+
+ 
+----------------------- 
+
+\vspace{-0.25cm}
+You can see the relationship show up in monthly residuals.
+ 
+\includegraphics[scale=0.58,trim=10 10 0 50]{airmonths_new}
+ 
+ 
+ 
+- This is probably due to holiday/shoulder season effects.
+ 
+ 
+
+  
+----------------------- 
+
+We create some useful dummy variables:
+ `r myblue("\small
+\begin{verbatim}
+> YX$holidays <- airline$Month[t] %in% c(3,6,7,8,12) 
+> YX$jan <- airline$Month[t]==1
+> YX$nov <- airline$Month[t]==11
+> YX$jul <- airline$Month[t]==7
+\end{verbatim}
+}
+
+ `r sk2()`
+Then re-fit the model with {\tt holidays}, {\tt nov}, {\tt jan}, and {\tt
+  jul}.
+ 
+- Months with {\tt  holidays} have an obvious effect.
+- {\tt  nov} and {\tt  jan} have fewer vacation days.
+- {\tt  jul} is unique as the entire month is school holiday.
+ 
+
+ 
+
+  
+----------------------- 
+
+\vspace{-0.15cm}
+Everything shows up as being very significant.
+
+ `r myblue("\footnotesize
+\begin{verbatim}
+> airlm2 <- lm(logY ~ logYpast + t + sin12 + cos12
++   + holidays + nov + jan + jul, data=YX)
+> summary(airlm2)
+
+Coefficients:
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   1.3427507  0.1945587   6.902 1.86e-10 ***
+logYpast      0.7100231  0.0401417  17.688  < 2e-16 ***
+t             0.0028983  0.0004111   7.050 8.57e-11 ***
+sin12         0.0332607  0.0069795   4.765 4.84e-06 ***
+cos12        -0.0355395  0.0070772  -5.022 1.60e-06 ***
+holidaysTRUE  0.1361014  0.0079670  17.083  < 2e-16 ***
+novTRUE      -0.0571301  0.0136937  -4.172 5.39e-05 ***
+janTRUE       0.0619620  0.0136601   4.536 1.26e-05 ***
+julTRUE       0.0473444  0.0131525   3.600 0.000447 ***
+\end{verbatim}
+}
+
+ 
+
+ 
+----------------------- 
+
+\vspace{-0.15cm}
+The one-step-ahead model predictions look even better.
+ 
+\includegraphics[scale=0.58,trim=10 10 0 50]{airpred2_new}
+ 
+
+ 
+ 
+- We're now really able to capture the annual dynamics.
+ 
+
+ 
+
+ 
+----------------------- 
+
+ 
+ 
+\includegraphics[scale=0.68,trim=20 5 0 35]{airresid2_new}
+ 
+
+ 
+ 
+- There is a bit of left-over 12 month autocorrelation, 
+but nothing to get overly worried about.
+ 
+
+```
+
+
+
