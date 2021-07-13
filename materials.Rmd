@@ -70,7 +70,13 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Bayesian Basics 
 
-### Fitting Bayesian TPCs
+- [Lecture slides](lectures/VB_Bayes1.pdf),  Lecture video, Analytic Practical 
+
+
+### Fitting Bayesian Models Using JAGS
+
+- [Lecture slides](lectures/VB_Bayes2.pdf),  Lecture video, Computational Practical 
+
 
 ### Introduction to Bayesian on State-Space models for Abundance Data
 
