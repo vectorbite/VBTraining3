@@ -1,0 +1,469 @@
+---
+title: |
+    | VectorBiTE Methods Training
+    | Introduction to Bayesian Statistics
+author: | 
+    | The VectorBiTE Team
+    | (Leah R. Johnson, Virginia Tech)
+date: "Summer 2021"
+output:
+  beamer_presentation:
+    fig_caption: no
+    includes:
+      in_header: header.tex
+    latex_engine: pdflatex
+    slide_level: 2
+    highlight: tango
+    colortheme: "seagull"
+    fonttheme: "structurebold"
+    theme: "Szeged"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(cache = FALSE, 
+                      echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE,
+                      #fig.height=6, 
+                      #fig.width = 1.777777*6,
+                      tidy = FALSE, 
+                      comment = NA, 
+                      highlight = TRUE, 
+                      prompt = FALSE, 
+                      crop = TRUE,
+                      comment = "#>",
+                      collapse = TRUE)
+library(knitr)
+library(kableExtra)
+library(xtable)
+library(viridis)
+
+options(stringsAsFactors=FALSE)
+knit_hooks$set(no.main = function(before, options, envir) {
+    if (before) par(mar = c(4.1, 4.1, 1.1, 1.1))  # smaller margin on top
+})
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(width = 60)
+source("my_knitter.R")
+#library(tidyverse)
+#library(reshape2)
+#theme_set(theme_light(base_size = 16))
+make_latex_decorator <- function(output, otherwise) {
+  function() {
+      if (knitr:::is_latex_output()) output else otherwise
+  }
+}
+insert_pause <- make_latex_decorator(". . .", "\n")
+insert_slide_break <- make_latex_decorator("----", "\n")
+insert_inc_bullet <- make_latex_decorator("> *", "*")
+insert_html_math <- make_latex_decorator("", "$$")
+## classoption: aspectratio=169
+```
+
+
+
+## Learning Objectives
+
+1. Understand the basic principles underlying Bayesian modeling methodology
+1. Introduce how to use Bayesian inference for real-world problems
+1. Introduce computation tools to perform inference for simple models in R (how to turn the Bayesian crank)
+1. Appreciate the need for sensitivity analysis, model checking and comparison, and the potential dangers of Bayesian methods.
+ 
+
+## Recall: Bayes Theorem
+
+Bayes Theorem allows us to relate the conditional probabilities of two events $A$ and $B$:
+$$
+\text{Pr}(A|B) = \frac{\text{Pr}(B|A)\text{Pr}(A)}{\text{Pr}(B)}
+$$
+
+## What is Bayesian Inference?
+
+In the Bayesian approach our probabilities numerically represent rational beliefs. Bayes rule provides a rational method for updating those beliefs in light of new information and incorporating/quantifying uncertainty in those beliefs.
+
+`r sk2()`
+
+Thus, Bayesian inference is an approach for understanding data inductively. 
+
+## What is Bayesian Inference?
+
+We can re-write Bayes rule in terms of our parameters, $\theta$ and our data, $Y$:
+\begin{align*}
+\text{Pr}(\theta|Y) & = \frac{\text{Pr}(Y|\theta)\text{Pr}(\theta)}{\text{Pr}(Y)} 
+\end{align*}
+
+The LHS is the main quantity of interest in a Bayesian analysis, the `r myblue("posterior")`,  denoted $f(\theta|Y)$:
+$$
+\overbrace{f(\theta|Y)}^\text{Posterior} \propto \overbrace{\mathcal{L}(\theta; Y)}^\text{Likelihood} \times \overbrace{f(\theta)}^\text{Prior}
+$$
+
+## Bayesian methods provide
+
+1. models for rational, quantitative learning
+1. parameter estimates with good statistical properties
+1. estimators that work for small and large sample sizes
+1. parsimonious descriptions of data, predictions for missing data, and forecasts for future data
+1. a coherent computational framework for model estimation, selection and validation
+
+
+## Classical vs Bayesian
+
+The fundamental differences between classical and Bayesian methods is what is fixed and what is random in an analysis.
+
+`r sk2()`
+
+
+| Paradigm    |   Fixed            |Random             |
+|:-----------:|:------------------:|:-----------------:|
+| Classical   | param ($\theta$)   | data ($Y$)        |
+| Bayesian    | data ($Y$)         | param ($\theta$)  | 
+
+
+
+
+
+
+## Why/Why Not Bayesian Statistics?
+
+___`r myblue("Pros")`___
+
+1. If $f(\theta)$ & $\mathcal{L}(\theta; Y)$ represent a rational person's beliefs, then Bayes' rule is an optimal method of updating these beliefs given new info (Cox 1946, 1961; Savage 1954; 1972).
+1. Provides more intuitive answers in terms of the probability that parameters have particular values. 
+1. In many complicated statistical problems there are no obvious non-Bayesian inference methods.
+
+`r sk1()`
+
+___`r myred("Cons")`___
+
+1.  It can be hard to mathematically formulate prior beliefs (choice of $f(\theta)$ often ad hoc or for computational reasons).
+1. Posterior distributions can be sensitive to prior choice.
+1. Analyses can be computationally costly.
+
+
+## Steps to Making Inference
+
+
+1. Research question
+1. Data collection
+1. Model $Y_i \approx f(X_i)$ 
+1. Estimate the parameter in the model with uncertainty
+1. Make inference
+ 
+ `r sk2()`
+
+The difference between `r myblue("Classical")` and `r myblue("Bayesian")` lies in step 4: (C) uses maximum likelihood estimate (MLE), and (B) derives a posterior distribution.
+
+
+## Example: Estimating the probability of a rare event
+
+Suppose we are interested in the prevalence of an infectious disease in a small city.  A small random sample of 20 individuals will be checked for infection.
+
+- Interest is in the fraction of infected individuals
+$$
+\theta \in \Theta =[0,1]
+$$
+- The data records the number of infected individuals
+$$
+y \in \mathcal{Y} =\{0,1, \ldots, 20\}
+$$
+
+## Example: Likelihood/sampling model
+
+Before the sample is obtained, the number of infected individuals is unknown. 
+
+- Let $Y$ denote this to-be-determined value
+- If $\theta$ were known, a sensible `r myblue("sampling")` model is
+$$
+Y|\theta \sim  \mathrm{Bin} (20, \theta)
+$$
+ 
+\begin{center}
+\includegraphics[scale=0.375,trim=20 50 0 100]{bin_sampling}
+\end{center}
+
+## Example: Prior
+
+Other studies from various parts of the country indicate that the infection rate ranges from about
+0.05 to 0.20, with an average prevalence of 0.1. 
+
+- Moment matching from a beta distribution (a convenient choice) gives the prior $\theta \sim  \mathrm{Beta} (2,20)$
+
+```{r, echo=FALSE, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+#\begin{center}
+#\includegraphics[scale=0.55,trim=10 50 0 125]{beta_prior}
+#\end{center}
+x<-seq(0, 1, length=100)
+plot(x, dbeta(x, 2, 20), type="l", lwd=2, xlab="", ylab="density", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+```
+
+## Example: Posterior
+
+The prior and sample model combination:
+\begin{align*}
+\theta & \sim  \mathrm{Beta} (a,b) \\
+Y|\theta &  \sim  \mathrm{Bin} (n, \theta)
+\end{align*}
+and an observed $y$ (the data), leads to the posterior 
+$$
+p(\theta|y)= \mathrm{Beta}(a+y, b+n-y)
+$$
+
+## Example: Posterior
+
+For our case, we have $a=2$, $b=20$, $n=20$.  
+
+If we don't find any infections, then $y=0$ our posterior is:
+$$
+p(\theta |y=0)= \mathrm{Beta}(2, 40)
+$$
+
+```{r, echo=FALSE, echo=FALSE, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+#\begin{center}
+#\includegraphics[scale=0.55,trim=10 50 0 60]{beta_bin_posterior}
+#\end{center}
+x<-seq(0,1, length=100)
+plot(x, dbeta(x, 2, 20), type="l", col="grey", xlab="", ylab="density", lwd=3, ylim=c(0,15), bty="l", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+lines(x, dbeta(x, 2, 40), lwd=3)
+legend("topright", c("posterior (y=0)", "prior"), col=c("black", "grey"), lwd=3, bty="n")
+
+```
+
+## Example: Sensitivity Analysis
+
+How influential is our prior?
+
+The posterior expectation is
+$$
+ \mathrm{E}\{\theta|Y=y\} =   \frac{n}{w+n} \bar{y} + \frac{w}{w+n} \theta_0
+$$
+a weighted average of the sample mean and the prior expectation:
+\begin{align*}
+\theta_0 & =  \frac{a}{a+b} ~~~~ \rightarrow \text{ prior expectation (or guess)} \\
+w & = a + b  ~~~~ \rightarrow \text{  prior confidence} 
+\end{align*}
+
+
+## Example: A non-Bayesian approach
+
+A standard estimate of a population proportion, $\theta$ is the sample mean  $\bar{y} = y/n$, the fraction of infected people in the sample. 
+
+`r sk2()`
+If $y=0$, this gives zero, so reporting the sampling uncertainty is crucial (e.g., for reporting to health officials). 
+
+`r sk2()`
+The most popular 95% confidence interval for a population proportion is the `r myblue("Wald Interval")`:
+$$
+\bar{y} \pm 1.96 \sqrt{\bar{y}(1-\bar{y})/n}.
+$$
+This has the correct _`r myblue("asymptotic")`_ coverage, but __$y=0$__ `r myred("is still problematic")`!
+
+## Conjugate Bayesian Models
+
+Some sets of priors/likelihoods/posteriors exhibit a special relationship called __`r myblue("conjugacy")`__. This happens if the posterior distribution has the same form as the prior. For instance, in our above Beta-Binomial/Bernoilli examples:
+\begin{align*}
+\theta & \sim  \mathrm{Beta} (a,b) 
+Y|\theta &  \sim  \mathrm{Bin} (n, \theta) 
+\theta | Y & \sim  \mathrm{Beta}(a^*, b^*)
+\end{align*}
+
+__Are all posteriors in the same family as the priors?__ ___`r myred("No")`___ 
+
+Conjugacy is a nice special property, but most of the time this isn't the case and getting an analytic form of the posterior distribution can be hard or impossible.  
+
+
+## What do you do with a Posterior?
+
+- Summarize important aspects of the posterior
+  - mean, median, mode, variance...
+- Check sensitivity of posterior to prior choice
+- Say what range of parameters is consistent with the observed data given our prior information
+- Make predictions
+ 
+
+## Posterior Summaries
+
+If we are interested in point-summaries of our posterior then the (full) distribution allows us many choices. For example for the Beta-Binomial model, we found that
+$$
+p(\theta | y)= \mathrm{Beta}(a+y, b+n-y)
+$$
+So, for example:
+\begin{align*}
+ \mathrm{E}[\theta|Y] & = \frac{a+y}{a+b+n} \\ 
+ \mathrm{mode}(\theta|Y) & = \frac{a+y-1}{a+b+n-2} ~~~ \dagger  
+\end{align*}
+
+$\dagger$ a.k.a. the _maximum a posteriori estimator_ (MAP)
+ 
+
+
+## Prior Sensitivity
+
+As we saw earlier for the Beta-Binomial model, the posterior expectation can be written as a weighted average of information from the prior and the data
+$$
+ \mathrm{E}\{\theta |Y=y\} =   \frac{n}{a + b +n} \bar{y} + \frac{a+b}{a+b+n} \theta_0.
+$$
+Thus $a$ and $b$ can be interpreted here as ``prior data'' where $a$ is the number of ``prior successes'' and $a+b$ is the ``prior sample size''. When $n\gg a+b$ most of our information comes from the data instead of the prior. 
+ 
+
+-----------------
+
+We usually visualize the prior vs. posterior to check for sensitivity, since we don't have analytic ways, in general. 
+
+```{r, echo=FALSE, echo=FALSE, echo=FALSE, fig.align="center", fig.height=2.35, fig.width=4.5, dev.args=list(bg='transparent'), no.main=TRUE}
+
+#\begin{center}
+#\includegraphics[scale=0.5,trim=30 50 0 20]{prior_sens}
+#\end{center}
+x<-seq(0,1, length=1000)
+
+n<-20
+y<-1
+
+a1<-1
+b1<-1
+
+a2<-15
+b2<-20
+
+par(mfrow=c(1,3), bty="l", mar = c(3.1, 1.75, 1.1, 1.1))
+plot(x, dbeta(x, a1, b1), type="l", col="grey", xlab="", 
+     ylab="density", lwd=3,
+     ylim=c(0,13), bty="l", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+lines(x, dbeta(x, a1+y, b1+n-y), lwd=3)
+legend("topright", c("posterior (y=1, n=20)", "prior (a=1, b=1)"),
+       col=c("black", "grey"), lwd=3, bty="n", cex=0.5)
+abline(v=(a1+y)/(a1+b1+n), col=2, lty=2)
+
+plot(x, dbeta(x, a2, b2), type="l", col="grey", xlab="", 
+     ylab="density", lwd=3,
+     ylim=c(0,13), bty="l", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+lines(x, dbeta(x, a2+y, 21+n-y), lwd=3)
+legend("topright", c("posterior (y=1, n=20)", "prior (a=15, b=20)"),
+       col=c("black", "grey"), lwd=3, bty="n", cex=0.5)
+abline(v=(a2+y)/(a2+b2+n), col=2, lty=2)
+
+
+plot(x, dbeta(x, a2, b2), type="l", col="grey", xlab="", 
+     ylab="density", lwd=3,
+     ylim=c(0,13), bty="l", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+lines(x, dbeta(x, a2+5*y, 21+5*n-5*y), lwd=3)
+legend("topright", c("posterior (y=5, n=100)", "prior (a=15, b=20)"),
+       col=c("black", "grey"), lwd=3, bty="n", cex=0.5)
+abline(v=(a2+5*y)/(a2+b2+5*n), col=2, lty=2)
+```
+
+
+## Confidence Regions
+
+An interval $[l(y), u(y)]$, based on the observed data $Y=y$, has 95 % Bayesian coverage for $\theta$ if
+$$
+P(l(y) <\theta < u(y)|Y=y)=0.95
+$$
+The interpretation: it describes your information about the true value of $\theta$ after you have observed $Y=y$. 
+
+`r sk2()`
+Such intervals are typically called `r myblue("credible intervals")`, to distinguish them from frequentist confidence intervals. Both are referred to as CIs. 
+
+
+
+## Quantile-based (Bayesian) CI
+
+Perhaps the easiest way to obtain a credible interval is to use the posterior quantiles.
+
+To make a $100 \times (1-\alpha)$ % quantile-based CI, find numbers $\theta_{\alpha/2}<\theta_{1- \alpha/2}$ such that
+ 
+- $P(\theta <\theta_{\alpha/2} |Y=y)=\alpha/2$
+- $P(\theta >\theta_{1-\alpha/2} |Y=y)=\alpha/2$
+ 
+The numbers $\theta_{\alpha/2},\theta_{1- \alpha/2}$ are the $\alpha/2$ and  $1-\alpha/2$ posterior quantiles of $\theta$. 
+
+ 
+
+
+## Example: Binomial sampling + uniform prior
+
+Suppose out of $n=10$ conditionally independent draws of a binary random variable we observe $Y=2$ ones (successes).  
+
+`r sk2()`
+Using a uniform prior distribution (a.k.a., $\mathrm{Beta}(1,1)$) for $\theta$, the posterior distribution is $\theta | Y=2 ~ \mathrm{Beta}(1+2,1+10-2)$.  
+
+`r sk2()`
+A 95 % CI can be obtained from the 0.025 and 0.975 quantiles of this beta distribution (e.g., using {\sf R}): 
+
+```{r, echo=TRUE}
+round(qbeta(p=c(0.025, 0.975), 3, 9), 2)
+```
+
+Thus the posterior probability that $\theta \in [0.06, 0.52]$ is 95 %. 
+
+
+
+## Example: Binomial sampling + uniform prior
+
+One drawback: Notice that there are $\theta$-values outside the quantile-based CI that have higher probability [density] than some points inside the interval.
+
+`r sk1()`
+
+```{r, echo=FALSE, echo=FALSE, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+#\begin{center}
+#\includegraphics[scale=0.5,trim=30 50 0 50]{quantCI}
+#\end{center}
+x<-seq(0,1, length=1000)
+plot(x, dbeta(x, 3, 9), type="l", col="black", xlab="", ylab="density", lwd=3,
+     ylim=c(0,3.25), bty="l", cex.lab=0.75, cex.axis=0.75, mgp=c(2,1,0))
+abline(v=qbeta(0.025, 3, 9), col=2, lty=2, lwd=2)
+abline(v=qbeta(0.975, 3, 9), col=2, lty=2, lwd=2)
+legend("topright", c("posterior", "95% CI"),
+       col=c("black", "red"), lwd=3, lty=c(1,2), bty="n", cex=0.75)
+```
+
+## HPD region
+
+An alternative is a more restrictive type of interval. A $100 \times(1-\alpha)$ % highest posterior density (HPD) regions is the part of parameter space, $s(y)$, such that:
+ 
+1.  $P(\theta \in s(y) |Y=y)= 1-\alpha$
+1. If $\theta_a \in s(y)$ and $\theta_b \notin s(y)$ then $P(\theta_a |Y=y)>P(\theta_b |Y=y)$
+ 
+So that all points in the HPD region have higher probability density than those outside.
+
+## Example: Binomial sampling + uniform prior
+
+Numerically, we collect the highest density points with cumulative density greater that $1-\alpha$: 
+\begin{center}
+\includegraphics[scale=0.275,trim=30 30 0 20]{HPD_example}
+\end{center}
+The 95 % HPD region is [0.04, 0.48] which is narrower than the quantile-based CI, yet both contain 95 % probability.
+ 
+
+----------------------
+
+`r myred("Exercise: Is a treatment for cancer effective?")`
+
+We have data on $n$ cancer patients that have been given a treatment. Our outcome variable is whether or not it was ``effective'':
+
+
+| Patient  | Effectiveness | Numerical Data | 
+|:--------:|:-------------:|:--------------:|
+| 1        |   N           |     0          |
+| 2        |   N           |     0          |
+| 3        |   Y           |     1          |
+| $\vdots$ |  $\vdots$     |     $\vdots$   |
+
+
+The appropriate sampling model for each patient is a Bernoilli:
+$$Y_i|\theta  \stackrel{iid}{\sim} f(Y|\theta) = \text{Bern}(\theta)$$ 
+where $\theta$ is the success rate of the treatment. Write down the likelihood for the $n$ patients. Then, assuming a $\mathrm{Beta}(a,b)$ prior for $\theta$, find the posterior distribution for $\theta|Y$. Does this look familiar?
+
+
+
+##  Next Steps
+
+Next you'll complete a practical where you conduct a conjugate Bayesian analysis for the mean of a normal distribution on the midge data introduced in the likelihood chapter. You'll also visualize the effect of different prior choices on the posterior distribution. You'll also use the results of this when you start trying out MCMC (with JAGS) to approximate posterior distributions numerically
+
+
+
+
+
+ 
+
+
