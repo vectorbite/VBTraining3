@@ -404,7 +404,7 @@ One drawback: Notice that there are $\theta$-values outside the quantile-based C
 
 `r sk1()`
 
-```{r, echo=FALSE, echo=FALSE, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
+```{r, echo=FALSE, fig.align="center", fig.height=2.25, fig.width=4, dev.args=list(bg='transparent'), no.main=TRUE}
 #\begin{center}
 #\includegraphics[scale=0.5,trim=30 50 0 50]{quantCI}
 #\end{center}

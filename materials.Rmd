@@ -57,7 +57,10 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Fitting Thermal Performance Curves (TPCs)
 
-### Simple Models for Temporal Abundance Data
+### Simple Models for Temporal Data
+
+- [Lecture slides](lectures/VB_TS.pdf),  Lecture video, Practical 
+
 
 ### Review of Likelihoods 
 
@@ -78,5 +81,5 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 - [Lecture slides](lectures/VB_Bayes2.pdf),  Lecture video, Computational Practical 
 
 
-### Introduction to Bayesian on State-Space models for Abundance Data
+### Introduction to Bayesian State-Space models for Temporal Data
 
