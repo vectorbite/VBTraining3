@@ -59,7 +59,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Simple Models for Temporal Data
 
-- [Lecture slides](lectures/VB_TS.pdf),  Lecture video, Practical 
+- [Lecture slides](lectures/VB_TS.pdf),  Lecture video, [Practical](activities/VB_TimeSeries.html) 
 
 
 ### Review of Likelihoods 

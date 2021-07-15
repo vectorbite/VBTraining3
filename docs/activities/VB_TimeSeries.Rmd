@@ -1,0 +1,500 @@
+---
+title: "Introduction to Autocorrelated Data and Time Series"
+author: "VectorBiTE Team"
+date: "Summer 2021"
+output:
+  html_document: default
+subtitle: 'Anaylsis Activity: Fitting TS with linear models'
+graphics: yes
+---
+
+<!--NAVIGATION-->
+< | [Main Materials](https://vectorbite.github.io/VBTraining3/materials.html) | >
+
+
+
+# Introduction
+
+This section is focused on teaching some techniques for analysis of time series of data of interest such as abundances. This section assumes that you have seen the [time series lecture](https://vectorbite.github.io/VBTraining3/lectures/VB_TS.pdf), where you saw how basic time series analyses are simply extensions to linear regression.
+
+
+# Vector Abundances (example analysis)
+
+In the face of global climate change, vector borne diseases have the capacity to shift ranges and drastically alter emergence times. This can have profound public health implications. Therefore, it is essential that we monitor, and make attempts to forecast how changing climate could affect vectors. 
+
+We will apply linear models to vector abundance data available in [VecDyn](http://www.vectorbyte.org).  
+
+Let's start off by reading in some packages which we will use later on in the example. Let's first load packages for [data manipulation](https://nbviewer.jupyter.org/github/mhasoba/TheMulQuaBio/blob/master/notebooks/08-Data_R.ipynb). 
+
+```{r, warning=FALSE, message = FALSE}
+require(dplyr)
+require(tidyr)
+```
+
+You will get warnings because these packages have functions with the same name as the main ("base") R packages. 
+
+Now let's read in some data. There are a couple of example datasets for you to explore - as well as a wealth of data you can download from the VecDyn database. They will all be in the same format, so the cleaning procedures, and the analytic processes will be the same for linear modeling. 
+
+```{r}
+# This is a dataset from Walton County, Florida for the species Culex erraticus
+
+Complete_data <- read.csv("../data/Culex_erraticus_walton.csv")
+
+## Or you could use either of the following datasets for Culex nigripalpus
+
+# Complete_data <- read.csv("../data/Culex_nigripalpus_walton.csv")
+# Complete_data <- read.csv("../data/Culex_nigripalpus_manatee.csv")
+```
+
+Great, now we have some data. It's important that we have a look at its layout, format, etc. I usually use 3 methods to start with. First, just the names (tells you the names of the columns):
+```{r}
+names(Complete_data)
+```
+
+We can already see that there's a bunch of the data set that we probably won't be using. Next, head allows us to look at the first few rows of data
+
+```{r}
+head(Complete_data)
+```
+
+Finally the summary, which tells us a little bit more about the type of data in each column, as R sees it:
+```{r}
+summary(Complete_data)
+```
+
+Notice here that most of these are of type "character" which indicates strings of words. In certain cases you may end up wanting to use some of these (e.g. such as sex or stage) as factors, in which case you have to change the format before you can use it in your analysis.
+
+
+There's a lot of information in this dataset, most of which we won't be using to analyze the time series data. For simplicity, let's clean the data and store it in another data frame which we can use to match with climate data from the location where the data were taken. 
+
+```{r}
+# select only the rows of interest 
+Main_data <- select(Complete_data, c("sample_end_date", "sample_value", "sample_lat_dd", "sample_long_dd"))
+
+# Make sure the sample end date is in date format
+Main_data$sample_end_date <- as.Date(Main_data$sample_end_date, format = "%Y-%m-%d")
+
+# Order by date 
+Main_data <- Main_data[order(Main_data$sample_end_date, decreasing=FALSE),]
+
+# We can now create columns for Month/Year and Month 
+Main_data$Month_Yr <- format(as.Date(Main_data$sample_end_date), "%Y-%m")
+Main_data$Month <- format(as.Date(Main_data$sample_end_date), "%m")
+```
+
+Before we go any further, let's take a look at the data so far
+```{r}
+summary(Main_data)
+```
+
+and plot the samples
+```{r}
+plot(Main_data$sample_value, type="l")
+points(Main_data$sample_value, col=2)
+```
+
+Notice that we have a LOT of zeros, both between seasons, and because data aren't collected everyday. Further, we have a lot of variance. This dataset, as is, will be hard to model without some sort of transformation. We also can't use basic regression approaches unless we don't have any data gaps. So the best bet here will be to aggregate and the possibly transform (but let's get our climate data, first)
+
+```{r}
+# Pre-allocate the rows for climate data by filling with NAs
+Main_data$Max.Temp <- NA
+Main_data$Precipitation <- NA
+```
+
+
+
+## Import and Map Climate Data 
+
+Next, we can import the climate data to be matched up to the abundance data we have stored as ```Main_data```. For this, you will need to ensure you have the climate data file `vectorbase_locations_dates_climate.csv` (look in the data directory on the [github repo](https://github.com/vectorbite/VBiTraining2)) saved in your data directory. 
+
+This climate data has been downloaded in advance from NOAA databases, on a scale of 2.5x2.5 degrees lat/long, on a daily basis. 
+
+```{r}
+# Read in the climate data csv 
+
+Climate_data <- read.csv("../data/vectorbase_locations_dates_climate.csv")
+```
+
+We can now populate these columns by matching up the date for each row, and the closest co-ordinates we have in our climate data. 
+
+```{r, cache=TRUE}
+# For each row in Main_data
+for (row in 1:nrow(Main_data)){
+
+  # extract the date associated with the row 
+  date <- as.character(Main_data[row, "sample_end_date"])
+  
+  # subset the climate data to only those with the same date
+  data <- subset(Climate_data, Climate_data$Collection.date.range == date)
+  
+  if (nrow(data)>0){
+  
+    # define the lat and long desired
+    lat <- as.numeric(Main_data[row, "sample_lat_dd"])
+    long <- as.numeric(Main_data[row, "sample_long_dd"])
+    
+    # find the absolute differences between desired lat/longs to the climate datasets
+    x <- abs(data$Initial_latitude - lat)
+    y <- abs(data$Initial_longitude - long)
+    
+    # find the index for which there is the minimum overall difference between lat/longs 
+    z<-which(x+y==min(x+y))
+    
+    # draw out the max temp and place into main data frame 
+    Main_data[row, "Max.Temp"] <- data[z, "Max.Temp"]
+    Main_data[row, "Precipitation"] <- data[z, "Precipitation"]
+    
+  }
+  
+  else{
+  
+    # If there aren't any data to extract for a given date, input NAs
+    Main_data[row, "Max.Temp"] <- NA
+    Main_data[row, "Precipitation"] <- NA
+  } 
+}
+```
+
+Now let's check whether this has worked correctly, and assess whether there are any ```NA```'s. 
+
+```{r}
+summary(Main_data$Max.Temp)
+summary(Main_data$Precipitation)
+```
+
+When considering time series data, the temporal resolution can have profound implications. Ideally, we want no gaps in our data - therefore working with data on the daily scale for abundance data is impossible without some sort of interpolation to fill the gaps. Instead, lets aggregate the data to the monthly scale by averaging the daily data. That is, this will give us the average number of mosquitoes observed per day in that month.
+
+```{r}
+Aggregated_data <- aggregate(cbind(sample_value, Max.Temp, Precipitation) ~ Month_Yr, data = Main_data, mean)
+print(Aggregated_data)
+```
+As I mentioned above, we may want/need to transform our data. So first let's plot the samples over months:
+```{r}
+plot(Aggregated_data$sample_value, type = "l", main="Average Abundance", xlab ="Time (months)", ylab = "Average Count")
+```
+
+We still see some of that behavior from earlier where we bottom out with lots of zero counts with the variance being small when counts are small and large variance when counts are large. If we'd summed instead of averaged we would have raw counts and we could use a Poisson or similar to allow this difference in variances. Working with the means, the standards would be to log (natural log, if no zeros are present) or take the square-root if you have zeros. One can also add a small value to all of the counts and then log. In this case I'm going to work with the square-root.
+
+```{r}
+# create a sqrt column - we could also use a log(x+small) transform 
+Aggregated_data$sqrt_sample <- sqrt(Aggregated_data$sample_value)
+```
+
+Now that we have a clean dataframe to work with, let's plot our abundance data. 
+
+```{r}
+plot(Aggregated_data$sqrt_sample, type = "l", main="Average Monthly Abundance", xlab ="Time (months)", ylab = "Average SqRt Count")
+```
+
+
+## Fitting the linear models 
+
+It's good practice to always begin by creating a dataframe containing your response and all covariates that you want to consider. We include size and cosine waves with a 12 month period to capture the pattern of seasonality apparent in these data. I also currently use the data from the same month of weather, but because of the time to mature, it may be reasonable to use the previous month, instead.
+
+```{r}
+t <- 2:nrow(Aggregated_data)
+TS_df <- data.frame(Specimens=Aggregated_data$sqrt_sample[t],
+                        SpecimensPast=Aggregated_data$sqrt_sample[t-1],
+                        t=t,
+                        Month=Aggregated_data$Month[t],
+                        Max.Temp=Aggregated_data$Max.Temp[t],
+                        Precipitation=Aggregated_data$Precipitation[t],
+                        sin12=sin(2*pi*t/12), cos12=cos(2*pi*t/12))
+```
+
+Here we will conduct and plot a number of linear regression models for our data we will progressively add components to see which best predicts the data given. 
+
+Are the data autocorrelated? That is, do the abundances correlate with themselves with a lag time? We can check using the ```acf()``` function in R:
+
+```{r}
+acf(TS_df$Specimens)
+```
+
+The ```acf()``` function automatically includes a 0 time lag which will always have a value of 1 (every measure is perfectly correlated with itself!), thus acting as a reference point. We can see that a time lag of 1 (month) has the highest correlation, so it should be interesting to incorporate this into a linear model. 
+
+```{r}
+TS_lm <- lm(Specimens ~ SpecimensPast, data = TS_df)
+```
+
+Let's look at the summary:
+```{r}
+summary(TS_lm)
+```
+
+The AR coeff is significant, and $<1$, which indicates that the series seems to be "mean reverting" (as we learned in the lecture portion). Let's plot the fit with the data:
+
+```{r}
+plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
+lines(t, TS_lm$fitted, col="pink", lwd=2)
+```
+
+This is actually pretty good (although AR fits often are, esp if there's any mean reversion). What if we don't use the AR and just try sin/cos? 
+
+```{r}
+# first we will look at how the previous time step and the time itself can predict
+TS_lm_sin_cos <- lm(Specimens ~ sin12 + cos12, data = TS_df)
+
+# plot the sample 
+par(mfrow=c(1,1))
+plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average SqRt Count")
+
+# add a line to the plot for this particular model 
+lines(t, TS_lm_sin_cos$fitted, col="green", lwd=2)
+```
+
+It looks like the sine and cosine waves can predict the peaks relatively well! 
+
+From here there are lots of possible paths forward. For now we will create models to incorporate climatic factors individually. First we visually examine the times series of temperature and precipitation:
+
+```{r}
+par(mfrow=c(2,1), mar=c(2, 4, 1.1, 1.1))
+plot(t, TS_df$Max.Temp, type="l", xlab = "Time (months)", ylab = "Ave Max Temperature")
+plot(t, TS_df$Precipitation, type="l", xlab = "Time (months)", ylab = "Ave Precipitation per day")
+```
+
+Clearly temperature looks more promising as a correlate, but let's fit linear models with each of these variables anyway:  
+
+```{r}
+TS_lm_temp <- lm(Specimens ~ Max.Temp, data = TS_df)
+summary(TS_lm_temp)
+plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
+lines(t, TS_lm_temp$fitted, col="red", lwd=2)
+```
+
+And precipitation:
+
+```{r}
+TS_lm_precip <- lm(Specimens ~ Precipitation, data = TS_df)
+summary(TS_lm_precip)
+plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
+lines(t, TS_lm_precip$fitted, col="blue", lwd=2)
+```
+
+Unlike temperature, precipitation by itself is clearly not a very good predictor, as we suspected. Finally, let's multiple factors into one model.
+
+```{r}
+TS_lm_all <- lm(Specimens ~ SpecimensPast + Max.Temp + sin12 + cos12, data = TS_df)
+summary(TS_lm_all)
+```
+
+```{r}
+plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
+lines(t, TS_lm_all$fitted, col="purple", lwd=2)
+```
+
+This looks pretty good, but only the AR term appears to be significant. Let's try pulling out the sin and cos:
+
+```{r}
+TS_lm_sub <- lm(Specimens ~ SpecimensPast + Max.Temp , data = TS_df)
+summary(TS_lm_sub)
+```
+
+```{r}
+plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
+lines(t, TS_lm_sub$fitted, col="purple", lwd=2)
+```
+
+All of the models appear, visually, to predict our data relatively well except precipitation. Ideally we would also examine residual plots (residuals over time, and the acf of the residuals) to see if we've managed to pull out all/most of the signal. For example, here's the acf of the residuals for the "all but precip" model:
+```{r}
+acf(TS_lm_all$residuals)
+```
+
+No remaining lingering autocorrelation! 
+
+
+## Model Comparisons 
+
+So which model is the "best"? Which should we use? We want to find a well fitting model that is also parsimonious. We could compare our models by looking at the $R^2$ values (remember that the $R^2$ value shows us the proportion of the variance in our data that can be explained by our model). However $R^2$ always increases as the number of parameters increases. It can be tempting to use adjusted $R^2$, but we don't have good theory as to what constitutes a meaningful different in $R^2$. We can use a partial-F test between any two (nested) models to see if the difference in $R^2$ between them is significant. For example, the ANOVA function in R allows us to to this easily. For example the temperature model and the all model. 
+
+```{r}
+anova(TS_lm_temp, TS_lm_all)
+```
+
+This tells us that adding in the extra components gives a significant increase in $R^2$ compared to temperature alone. However the partial F-test only allows us to compare two models at a time and only those that are nested. 
+
+Instead, a popular option is to use some type of information criterion (IC). The two most popular are AIC (Akaike IC) and BIC (Bayesian IC). Both allow you to compare multiple arbitrary models as long as the response data (here sqrt(ave counts)) are the same between all models considered, and all use the same data (i.e., you can't have added extra rows, but you can add columns). BIC has the nice addition that you can caluclate approximate model probabilities, so we'll use that here.
+
+BIC is a metric that looks at model fit (based on likelihoods) and discounts the fit based on a metric of how many parameters and data points you have. Generally, the lowest BIC value is the preferred model. A difference of greater than 5 shows evidence against the higher scored model, while a difference of greater than 10 showing strong evidence (note that these rules of thumb can depend on the exact way that you calculate BIC because of constant factors out front). Thus it's often easier to interpret the approximate model probabilities.
+
+Let's compare ALL of the models:
+
+```{r}
+# define the length of the series 
+n<-length(TS_df$Specimens)-1
+
+# extract the BIC scores 
+bics<-c(TSlm=extractAIC(TS_lm, k=log(n))[2],
+        TSlmsc=extractAIC(TS_lm_sin_cos, k=log(n))[2],
+        TSlmt=extractAIC(TS_lm_temp, k=log(n))[2],
+        TSlmp=extractAIC(TS_lm_precip, k=log(n))[2],
+        TSlmall=extractAIC(TS_lm_all, k=log(n))[2],
+        TSlmsub=extractAIC(TS_lm_sub, k=log(n))[2])
+
+## calculates the first part of the prob calculation
+ebics<-exp(-0.5*(bics-min(bics)))
+
+## final part of the probability calculation
+probs<-ebics/sum(ebics)
+
+
+rbind(round(bics-min(bics), 5), round(probs, 5))
+
+```
+
+For this example using Culex erraticus from Walton County, we can see that there is positive evidence for the complete model incorporating Maximum Temperature and past abundance counts, with a BIC score that is 6.35 lower than the "all" model. The probability that this is the best of the models is >90%. In other words, our best model indicated that temperature and previous abundance are most predictive of the data in sample. 
+
+
+
+# Airline passenger data (Guided Practice)
+
+Now let's perform a time series analysis of some data on airline passenger numbers. You will mimic the analysis from above for these data, but you will need to fill in the code/analysis gaps. While not about vectors, this is a classic dataset that many features that you can explore and practice with. 
+
+The data you will analyze consist of monthly numbers of international airline passengers from 1949 to 1961. These data can be found in the [`airline.csv`]() file. 
+
+```{r}
+airline <- read.csv("../data/airline.csv")
+```
+
+First plot the data:
+
+```{r}
+plot(airline$Passengers, xlab="year", ylab="monthly passengers", type="l", col=3, lwd=2, xaxt="n")
+axis(1, at=(0:12)*12, labels=1949:1961)
+```
+
+Notice that this involves a somewhat different approach toward adding axis labels than usual. *What does `at="n"` mean? What does the axis function do?* (Check the help doc: `?axis`)
+
+Next, we use the `acf` function to plot the auto-correlation function of the passengers data:
+
+```{r}
+## put the cf function here
+```
+
+*From the two plots above, what things do you notice about the data? What transforms might you need to take of the data? What kinds of covariates might you need to add in?*
+
+Re-plot the from data above using a log transform of the response (passenger):
+
+```{r}
+## plot code here
+```
+
+Now it's time to build a data frame to hold the data. This is a good habit to get in to when you are building models for data that include transforms and possibly multiple lags, etc. 
+
+First we make a time variate:
+
+```{r}
+t <- 2:nrow(airline)
+```
+
+Now, into the data frame, add the following covariates:
+
+1. logY: log of the number of passengers 
+2. logYpast: this is your auto-regressive term, the log of the passengers from the previous month
+3. t: month number
+4. sin12: sine terms with period of 12 months
+5. cos12: cosine term with period of 12 months
+
+```{r}
+YX <- data.frame(logY=log(airline$Passengers[t]), 
+                 logYpast=log(airline$Passengers[t-1]), t=t,
+                 sin12=sin(2*pi*t/12), cos12=cos(2*pi*t/12))
+```
+
+```{r}
+## your fitted model and the summary go here
+```
+
+Fit a linear model with logY as the response and the other 4 components as predictors. Look at the summary of the fit.
+
+
+*Are all of the predictors significant? What is the $R^2$ of your regression?*
+
+Next, we want to plot the data along with the prediction (aka the fit). I've plotted the data on a log scale (drawn with a dotted line).  Use the "lines" function to overlay the FITTED values from your regression (e.g., if your regression model was called "reg" you want to plot reg$fitted vs t) as a solid line in another color. This solid line is your prediction. Update the legend to reflect your additional line.
+
+```{r}
+plot(log(airline$Passengers), xlab="year",
+     ylab="log monthly passengers", type="l", col=4, lty=2,
+     xaxt="n", lwd=2)
+axis(1, at=(0:12)*12, labels=1949:1961)
+
+## add in the line here
+
+legend("topleft", legend=c("data", "fitted"), lty=c(2,1), col=c(4,4)) ## update the legend
+```
+
+The difference between the solid and dotted lines at each month are your residuals across time. As always, we want to also look at our residuals explicitly to see if we're doing a good job of explaining things. For TS we primarily look at residuals across time, and the ACF of our residuals. So make those two plots here. 
+
+```{r}
+par(mfrow=c(1,2))
+
+## residuals plotted across time
+
+## acf plot of the residuals
+```
+
+*How do these look? What do you notice about the residuals, esp the ACF?*
+
+It turns out that there is a month effect that we're missing. Here is one way to look at it (note we have to index by t so that everything lines up properly):
+
+```{r}
+## this command assumes that your fitted model is called mod1. You'll need to change it to your object
+
+## boxplot(mod1$resid ~ airline$Month[t], xlab="month",
+##        ylab="residuals", col=7)
+```
+
+Residuals in months with lots of school holidays (March, summer, December) are consistently high. Let's create a dummy variable called "holidays" that tells whether a particular passenger record is for a month that has lots of holidays.
+
+```{r}
+YX$holidays <- airline$Month[t] %in% c(3,6,7,8,12)
+```
+
+Fit a new lm that adds this holiday variable on to what you had before, and then re-examine the residuals, including by month.
+
+```{r}
+## new fitted model and summary here
+
+## plot of data + model fit here
+par(mfrow=c(1,2))
+## residuals plotted across time
+
+## acf plot of the residuals
+
+## boxplot of residuals by month
+```
+
+## Model Comparison
+
+Now you have 2 nested models. Because they are nested, we can compare them in two ways. First I do a partial F-test. The idea behind the F-test is that it looks at the difference in the $R^2$ value between the two models and determines whether or not this difference is large enough to warrent the additional covariates. If we use the "anova" function in R and provide both fittend model objects as arguments, it will automatically perform a partial F-test. Note: you will need to replace mod1 and mod2 with the names of your model objects.
+
+```{r}
+## partial F test: anova(mod1, mod2)
+```
+
+*Based on these what model would you choose and why?*
+
+We can also compare the models via BIC (the Bayesian Information Criterion) and the approximate relative model probabilities based on the BICs. Note that we can use BIC/model probabilities to compare between models even if the models are not nested, as long as the response being modeled is the same in each case. Note: you will need to replace mod1 and mod2 with the names of your model objects.
+
+```{r}
+n<-length(YX$logY)-1
+##bics<-c(mod1=extractAIC(mod1, k=log(n))[2],
+##        mod2=extractAIC(mod2, k=log(n))[2])
+
+##ebics<-exp(-0.5*(bics-min(bics)))
+
+##probs<-ebics/sum(ebics)
+
+
+##rbind(round(bics, 5), round(probs, 5))
+```
+
+*Which model is the best via BIC? Does this jive with what the partial F-test told you? What is the $R^2$ for your best model. Based on this model selection, $R^2$ and what you saw in the residuals for this model, do you feel satisfied that your model is capturing the patterns in the data? Would you want to go back and fit anything else?*
+
+
+
+# Aedes aegypti abundance (Independent Practice)
+
+Use *Aedes aegypti* abundances from light traps from various locations in Manatee County, Florida to perform a Time series analysis. This dataset can be downloaded from [VecDyn](http://vectorbyte.org/). You will need to register first. The same dataset is also available on the workshop [git repository](https://github.com/vectorbite/VBiTraining2) (file called [`vecdyn_manatee_county_a.aegypti.csv`](https://github.com/vectorbite/VBiTraining2/raw/master/data/vecdyn_manatee_county_a.aegypti.csv)). 
+
+Write it as an independent, self-sufficient R script that produces all the plots in a reproducible workflow when sourced. 
+

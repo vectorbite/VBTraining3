@@ -14,6 +14,16 @@ set.seed(54321)
 ```
 
 
+<!--NAVIGATION-->
+< | [Main Materials](https://vectorbite.github.io/VBTraining3/materials.html) | >
+
+
+
+# Introduction
+
+This section is focused on practicing building and analyzing likelihoods. This section assumes that you have seen the [likelihoods lecture](https://vectorbite.github.io/VBTraining3/lectures/VB_likelihood.pdf), where you are introduced to the basic idea of a likelihood, likelihood profiles, and MLEs.
+
+
 ## The Binomial Distribution
 
 Used to model the number of ``successes'' in a set of trials (e.g., number of heads when you flip a coin $N$ times). The pmf is 
