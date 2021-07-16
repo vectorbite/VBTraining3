@@ -45,9 +45,15 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Introduction to the VectorByte databases
 
+- This component will be delivered live synchronously
+
 ### Data Wrangling in R
 
-### Introduction to Model Fitting and Selection
+- Self-Guided Activity/Practical
+
+### Introduction to Linear Models
+
+- Lecture Slides, Lecture Video 1, Lecture Video 2, Practical
 
 
 <br>
@@ -55,9 +61,12 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 # Intermediate materials
 
-### Fitting Thermal Performance Curves (TPCs)
+### Nonlinear Modeling (including Thermal Performance Curves -- TPCs)
 
-### Simple Models for Temporal Data
+- Lecture Slides, Lecture Video, Practical
+
+
+### Simple Models for Temporal Data (based on Linear Models)
 
 - [Lecture slides](lectures/VB_TS.pdf),  Lecture video, [Practical](activities/VB_TimeSeries.html) 
 
