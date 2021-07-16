@@ -70,20 +70,26 @@ insert_html_math <- make_latex_decorator("", "$$")
 1. Appreciate the need for sensitivity analysis, model checking and comparison, and the potential dangers of Bayesian methods.
  
 
+
+
+## What is Bayesian Inference?
+
+In the Bayesian approach our probabilities numerically represent rational beliefs. 
+
+`r sk2()`
+
+`r myblue("Bayes rule")` provides a rational method for updating those beliefs in light of new information and incorporating/quantifying uncertainty in those beliefs.
+
+`r sk2()`
+
+Thus, ___Bayesian inference is an approach for understanding data inductively___. 
+
 ## Recall: Bayes Theorem
 
 Bayes Theorem allows us to relate the conditional probabilities of two events $A$ and $B$:
 $$
 \text{Pr}(A|B) = \frac{\text{Pr}(B|A)\text{Pr}(A)}{\text{Pr}(B)}
 $$
-
-## What is Bayesian Inference?
-
-In the Bayesian approach our probabilities numerically represent rational beliefs. Bayes rule provides a rational method for updating those beliefs in light of new information and incorporating/quantifying uncertainty in those beliefs.
-
-`r sk2()`
-
-Thus, Bayesian inference is an approach for understanding data inductively. 
 
 ## What is Bayesian Inference?
 
@@ -108,7 +114,7 @@ $$
 
 ## Classical vs Bayesian
 
-The fundamental differences between classical and Bayesian methods is what is fixed and what is random in an analysis.
+The fundamental differences between classical and Bayesian methods is what is `r myblue("fixed")` and what is `r myred("random")` in an analysis.
 
 `r sk2()`
 
@@ -151,7 +157,10 @@ ___`r myred("Cons")`___
  
  `r sk2()`
 
-The difference between `r myblue("Classical")` and `r myblue("Bayesian")` lies in step 4: (C) uses maximum likelihood estimate (MLE), and (B) derives a posterior distribution.
+The difference between `r myblue("Classical")` and `r myblue("Bayesian")` lies in step 4: 
+
+- (C) uses maximum likelihood estimate (MLE), and 
+- (B) derives a posterior distribution.
 
 
 ## Example: Estimating the probability of a rare event
@@ -203,7 +212,7 @@ The prior and sample model combination:
 \theta & \sim  \mathrm{Beta} (a,b) \\
 Y|\theta &  \sim  \mathrm{Bin} (n, \theta)
 \end{align*}
-and an observed $y$ (the data), leads to the posterior 
+and an observed $y$ (the data), leads to the `r myblue("posterior")` 
 $$
 p(\theta|y)= \mathrm{Beta}(a+y, b+n-y)
 $$
@@ -230,13 +239,15 @@ legend("topright", c("posterior (y=0)", "prior"), col=c("black", "grey"), lwd=3,
 
 ## Example: Sensitivity Analysis
 
-How influential is our prior?
+`r myred("How influential is our prior?")`
 
-The posterior expectation is
+`r sk2()`
+
+The `r myblue("posterior expectation")` is
 $$
  \mathrm{E}\{\theta|Y=y\} =   \frac{n}{w+n} \bar{y} + \frac{w}{w+n} \theta_0
 $$
-a weighted average of the sample mean and the prior expectation:
+a __weighted average__ of the sample mean and the prior expectation:
 \begin{align*}
 \theta_0 & =  \frac{a}{a+b} ~~~~ \rightarrow \text{ prior expectation (or guess)} \\
 w & = a + b  ~~~~ \rightarrow \text{  prior confidence} 
@@ -261,8 +272,8 @@ This has the correct _`r myblue("asymptotic")`_ coverage, but __$y=0$__ `r myred
 
 Some sets of priors/likelihoods/posteriors exhibit a special relationship called __`r myblue("conjugacy")`__. This happens if the posterior distribution has the same form as the prior. For instance, in our above Beta-Binomial/Bernoilli examples:
 \begin{align*}
-\theta & \sim  \mathrm{Beta} (a,b) 
-Y|\theta &  \sim  \mathrm{Bin} (n, \theta) 
+\theta & \sim  \mathrm{Beta} (a,b) \\
+Y|\theta &  \sim  \mathrm{Bin} (n, \theta) \\
 \theta | Y & \sim  \mathrm{Beta}(a^*, b^*)
 \end{align*}
 
@@ -458,7 +469,7 @@ where $\theta$ is the success rate of the treatment. Write down the likelihood f
 
 ##  Next Steps
 
-Next you'll complete a practical where you conduct a conjugate Bayesian analysis for the mean of a normal distribution on the midge data introduced in the likelihood chapter. You'll also visualize the effect of different prior choices on the posterior distribution. You'll also use the results of this when you start trying out MCMC (with JAGS) to approximate posterior distributions numerically
+Next you'll complete a practical where you conduct a conjugate Bayesian analysis for the mean of a normal distribution on the midge data introduced in the likelihood chapter. You'll also visualize the effect of different prior choices on the posterior distribution. 
 
 
 
