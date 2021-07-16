@@ -496,7 +496,7 @@ ___Q: Which model is the best via BIC? Does this jive with what the partial F-te
 
 # Aedes aegypti abundance (Independent Practice)
 
-Use *Aedes aegypti* abundances from light traps from various locations in Manatee County, Florida to perform a Time series analysis. This dataset can be downloaded from [VecDyn](http://vectorbyte.org/). You will need to register first. The same dataset is also available on the workshop [git repository](https://github.com/vectorbite/VBiTraining2) (file called [`vecdyn_manatee_county_a.aegypti.csv`](https://github.com/vectorbite/VBiTraining2/raw/master/data/vecdyn_manatee_county_a.aegypti.csv)). 
+Use *Aedes aegypti* abundances from light traps from various locations in Manatee County, Florida to perform a Time series analysis. This dataset is available on the workshop [git repository](https://github.com/vectorbite/VBTraining3) (file called [`vecdyn_manatee_county_a.aegypti.csv`](https://github.com/vectorbite/VBTraining3/blob/main/data/vecdyn_manatee_county_a.aegypti.csv)). 
 
 Write it as an independent, self-sufficient R script that produces all the plots in a reproducible workflow when sourced. 
 
