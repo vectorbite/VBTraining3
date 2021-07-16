@@ -63,7 +63,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Nonlinear Modeling (including Thermal Performance Curves -- TPCs)
 
-- Lecture Slides, [Lecture Video](https://www.youtube.com/watch?v=dnZlU2_iQ1k&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=3), Practical
+- Lecture Slides, [Lecture Video](https://www.youtube.com/watch?v=dnZlU2_iQ1k&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=3), [Practical](activities/VB_NLLS_activity.html)
 
 
 ### Simple Models for Temporal Data (based on Linear Models)
