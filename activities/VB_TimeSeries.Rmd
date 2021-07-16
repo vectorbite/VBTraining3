@@ -17,14 +17,9 @@ graphics: yes
 
 This section is focused on teaching some techniques for analysis of time series of data of interest such as abundances. This section assumes that you have seen the [time series lecture](https://vectorbite.github.io/VBTraining3/lectures/VB_TS.pdf), where you saw how basic time series analyses are simply extensions to linear regression.
 
+## Packages and tools
 
-# Vector Abundances (example analysis)
-
-In the face of global climate change, vector borne diseases have the capacity to shift ranges and drastically alter emergence times. This can have profound public health implications. Therefore, it is essential that we monitor, and make attempts to forecast how changing climate could affect vectors. 
-
-We will apply linear models to vector abundance data available in [VecDyn](http://www.vectorbyte.org).  
-
-Let's start off by reading in some packages which we will use later on in the example. Let's first load packages for [data manipulation](https://nbviewer.jupyter.org/github/mhasoba/TheMulQuaBio/blob/master/notebooks/08-Data_R.ipynb). 
+For this practical you will need to have the following packages installed for data manipulation:
 
 ```{r, warning=FALSE, message = FALSE}
 require(dplyr)
@@ -32,6 +27,13 @@ require(tidyr)
 ```
 
 You will get warnings because these packages have functions with the same name as the main ("base") R packages. 
+
+# Vector Abundances (example analysis)
+
+In the face of global climate change, vector borne diseases have the capacity to shift ranges and drastically alter emergence times. This can have profound public health implications. Therefore, it is essential that we monitor, and make attempts to forecast how changing climate could affect vectors. 
+
+We will apply linear models to vector abundance data available in [VecDyn](http://www.vectorbyte.org).  
+
 
 Now let's read in some data. There are a couple of example datasets for you to explore - as well as a wealth of data you can download from the VecDyn database. They will all be in the same format, so the cleaning procedures, and the analytic processes will be the same for linear modeling. 
 
@@ -88,7 +90,7 @@ summary(Main_data)
 ```
 
 and plot the samples
-```{r}
+```{r, fig.align='center'}
 plot(Main_data$sample_value, type="l")
 points(Main_data$sample_value, col=2)
 ```
@@ -169,7 +171,7 @@ Aggregated_data <- aggregate(cbind(sample_value, Max.Temp, Precipitation) ~ Mont
 print(Aggregated_data)
 ```
 As I mentioned above, we may want/need to transform our data. So first let's plot the samples over months:
-```{r}
+```{r, fig.align='center'}
 plot(Aggregated_data$sample_value, type = "l", main="Average Abundance", xlab ="Time (months)", ylab = "Average Count")
 ```
 
@@ -182,7 +184,7 @@ Aggregated_data$sqrt_sample <- sqrt(Aggregated_data$sample_value)
 
 Now that we have a clean dataframe to work with, let's plot our abundance data. 
 
-```{r}
+```{r, fig.align='center'}
 plot(Aggregated_data$sqrt_sample, type = "l", main="Average Monthly Abundance", xlab ="Time (months)", ylab = "Average SqRt Count")
 ```
 
@@ -206,7 +208,7 @@ Here we will conduct and plot a number of linear regression models for our data 
 
 Are the data autocorrelated? That is, do the abundances correlate with themselves with a lag time? We can check using the ```acf()``` function in R:
 
-```{r}
+```{r, fig.align='center'}
 acf(TS_df$Specimens)
 ```
 
@@ -223,14 +225,14 @@ summary(TS_lm)
 
 The AR coeff is significant, and $<1$, which indicates that the series seems to be "mean reverting" (as we learned in the lecture portion). Let's plot the fit with the data:
 
-```{r}
+```{r, fig.align='center'}
 plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
 lines(t, TS_lm$fitted, col="pink", lwd=2)
 ```
 
 This is actually pretty good (although AR fits often are, esp if there's any mean reversion). What if we don't use the AR and just try sin/cos? 
 
-```{r}
+```{r, fig.align='center'}
 # first we will look at how the previous time step and the time itself can predict
 TS_lm_sin_cos <- lm(Specimens ~ sin12 + cos12, data = TS_df)
 
@@ -246,7 +248,7 @@ It looks like the sine and cosine waves can predict the peaks relatively well!
 
 From here there are lots of possible paths forward. For now we will create models to incorporate climatic factors individually. First we visually examine the times series of temperature and precipitation:
 
-```{r}
+```{r, fig.align='center'}
 par(mfrow=c(2,1), mar=c(2, 4, 1.1, 1.1))
 plot(t, TS_df$Max.Temp, type="l", xlab = "Time (months)", ylab = "Ave Max Temperature")
 plot(t, TS_df$Precipitation, type="l", xlab = "Time (months)", ylab = "Ave Precipitation per day")
@@ -254,7 +256,7 @@ plot(t, TS_df$Precipitation, type="l", xlab = "Time (months)", ylab = "Ave Preci
 
 Clearly temperature looks more promising as a correlate, but let's fit linear models with each of these variables anyway:  
 
-```{r}
+```{r, fig.align='center'}
 TS_lm_temp <- lm(Specimens ~ Max.Temp, data = TS_df)
 summary(TS_lm_temp)
 plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
@@ -263,7 +265,7 @@ lines(t, TS_lm_temp$fitted, col="red", lwd=2)
 
 And precipitation:
 
-```{r}
+```{r, fig.align='center'}
 TS_lm_precip <- lm(Specimens ~ Precipitation, data = TS_df)
 summary(TS_lm_precip)
 plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
@@ -277,7 +279,7 @@ TS_lm_all <- lm(Specimens ~ SpecimensPast + Max.Temp + sin12 + cos12, data = TS_
 summary(TS_lm_all)
 ```
 
-```{r}
+```{r, fig.align='center'}
 plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
 lines(t, TS_lm_all$fitted, col="purple", lwd=2)
 ```
@@ -289,13 +291,13 @@ TS_lm_sub <- lm(Specimens ~ SpecimensPast + Max.Temp , data = TS_df)
 summary(TS_lm_sub)
 ```
 
-```{r}
+```{r, fig.align='center'}
 plot(t, TS_df$Specimens, type="l", xlab = "Time (months)", ylab = "Average log Count")
 lines(t, TS_lm_sub$fitted, col="purple", lwd=2)
 ```
 
 All of the models appear, visually, to predict our data relatively well except precipitation. Ideally we would also examine residual plots (residuals over time, and the acf of the residuals) to see if we've managed to pull out all/most of the signal. For example, here's the acf of the residuals for the "all but precip" model:
-```{r}
+```{r, fig.align='center'}
 acf(TS_lm_all$residuals)
 ```
 
@@ -413,7 +415,7 @@ ___Q: Are all of the predictors significant? What is the $R^2$ of your regressio
 
 Next, we want to plot the data along with the prediction (aka the fit). I've plotted the data on a log scale (drawn with a dotted line).  Use the "lines" function to overlay the FITTED values from your regression (e.g., if your regression model was called "reg" you want to plot reg$fitted vs t) as a solid line in another color. This solid line is your prediction. Update the legend to reflect your additional line.
 
-```{r}
+```{r, fig.align='center'}
 plot(log(airline$Passengers), xlab="year",
      ylab="log monthly passengers", type="l", col=4, lty=2,
      xaxt="n", lwd=2)
@@ -453,7 +455,7 @@ YX$holidays <- airline$Month[t] %in% c(3,6,7,8,12)
 
 Fit a new lm that adds this holiday variable on to what you had before, and then re-examine the residuals, including by month.
 
-```{r}
+```{r, fig.align='center'}
 ## new fitted model and summary here
 
 ## plot of data + model fit here

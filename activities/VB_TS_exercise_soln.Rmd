@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = TRUE)
 The data you will explore consist of data on monthly numbers of international airline passengers from 1949 to 1961. These data can be found in the ${\tt airline.csv}$ data file on GitHub. 
 
 ```{r}
-airline <- read.csv("../../data/airline.csv")
+airline <- read.csv("../data/airline.csv")
 ```
 
 
