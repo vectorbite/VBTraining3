@@ -362,7 +362,9 @@ plot(airline$Passengers, xlab="year", ylab="monthly passengers", type="l", col=3
 axis(1, at=(0:12)*12, labels=1949:1961)
 ```
 
-Notice that this involves a somewhat different approach toward adding axis labels than usual. *What does `at="n"` mean? What does the axis function do?* (Check the help doc: `?axis`)
+Notice that this involves a somewhat different approach toward adding axis labels than usual. 
+
+___Q: What does `at="n"` mean? What does the axis function do?___ (Check the help doc: `?axis`)
 
 Next, we use the `acf` function to plot the auto-correlation function of the passengers data:
 
@@ -370,7 +372,7 @@ Next, we use the `acf` function to plot the auto-correlation function of the pas
 ## put the cf function here
 ```
 
-*From the two plots above, what things do you notice about the data? What transforms might you need to take of the data? What kinds of covariates might you need to add in?*
+___Q: From the two plots above, what things do you notice about the data? What transforms might you need to take of the data? What kinds of covariates might you need to add in?___ 
 
 Re-plot the from data above using a log transform of the response (passenger):
 
@@ -407,7 +409,7 @@ YX <- data.frame(logY=log(airline$Passengers[t]),
 Fit a linear model with logY as the response and the other 4 components as predictors. Look at the summary of the fit.
 
 
-*Are all of the predictors significant? What is the $R^2$ of your regression?*
+___Q: Are all of the predictors significant? What is the $R^2$ of your regression?___ 
 
 Next, we want to plot the data along with the prediction (aka the fit). I've plotted the data on a log scale (drawn with a dotted line).  Use the "lines" function to overlay the FITTED values from your regression (e.g., if your regression model was called "reg" you want to plot reg$fitted vs t) as a solid line in another color. This solid line is your prediction. Update the legend to reflect your additional line.
 
@@ -432,7 +434,7 @@ par(mfrow=c(1,2))
 ## acf plot of the residuals
 ```
 
-*How do these look? What do you notice about the residuals, esp the ACF?*
+___Q: How do these look? What do you notice about the residuals, esp the ACF?___ 
 
 It turns out that there is a month effect that we're missing. Here is one way to look at it (note we have to index by t so that everything lines up properly):
 
@@ -471,7 +473,7 @@ Now you have 2 nested models. Because they are nested, we can compare them in tw
 ## partial F test: anova(mod1, mod2)
 ```
 
-*Based on these what model would you choose and why?*
+___Q: Based on these what model would you choose and why?___ 
 
 We can also compare the models via BIC (the Bayesian Information Criterion) and the approximate relative model probabilities based on the BICs. Note that we can use BIC/model probabilities to compare between models even if the models are not nested, as long as the response being modeled is the same in each case. Note: you will need to replace mod1 and mod2 with the names of your model objects.
 
@@ -488,13 +490,17 @@ n<-length(YX$logY)-1
 ##rbind(round(bics, 5), round(probs, 5))
 ```
 
-*Which model is the best via BIC? Does this jive with what the partial F-test told you? What is the $R^2$ for your best model. Based on this model selection, $R^2$ and what you saw in the residuals for this model, do you feel satisfied that your model is capturing the patterns in the data? Would you want to go back and fit anything else?*
+___Q: Which model is the best via BIC? Does this jive with what the partial F-test told you? What is the $R^2$ for your best model. Based on this model selection, $R^2$ and what you saw in the residuals for this model, do you feel satisfied that your model is capturing the patterns in the data? Would you want to go back and fit anything else?___ 
 
 
 
 # Aedes aegypti abundance (Independent Practice)
 
-Use *Aedes aegypti* abundances from light traps from various locations in Manatee County, Florida to perform a Time series analysis. This dataset can be downloaded from [VecDyn](http://vectorbyte.org/). You will need to register first. The same dataset is also available on the workshop [git repository](https://github.com/vectorbite/VBiTraining2) (file called [`vecdyn_manatee_county_a.aegypti.csv`](https://github.com/vectorbite/VBiTraining2/raw/master/data/vecdyn_manatee_county_a.aegypti.csv)). 
+Use *Aedes aegypti* abundances from light traps from various locations in Manatee County, Florida to perform a Time series analysis. This dataset is available on the workshop [git repository](https://github.com/vectorbite/VBTraining3) (file called [`vecdyn_manatee_county_a.aegypti.csv`](https://github.com/vectorbite/VBTraining3/blob/main/data/vecdyn_manatee_county_a.aegypti.csv)). 
 
 Write it as an independent, self-sufficient R script that produces all the plots in a reproducible workflow when sourced. 
+
+<br>
+<br>
+<br>
 

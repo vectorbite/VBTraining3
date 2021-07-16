@@ -1,0 +1,562 @@
+---
+title: "Introduction to Bayesian Methods"
+author: "VectorBiTE Team"
+date: "Summer 2021"
+output:
+  html_document: default
+subtitle: 'Activity: Exact vs. Numeric Bayesian analysis; TPCs'
+graphics: yes
+---
+
+<!--NAVIGATION-->
+< | [Main Materials](https://vectorbite.github.io/VBTraining3/materials.html) | >
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Introduction
+
+This section is focused on practicing the basics of Bayesian analysis (both analytic practice and computation using JAGS) for simple unimodal data. This section assumes that you have seen both of the [Bayes lectures](https://vectorbite.github.io/VBTraining3/materials.html#bayesian-basics). We'll review some of the analytic results so that you can compare the results from the previous activity to numerical results. Then we'll continue to a more advanced example fitting TPCs using a Bayesian approach.
+
+
+# Fitting Models the Bayesian way 
+
+Recall from the [lectures](https://github.com/vectorbite/VBiTraining2/tree/master/lectures) that for numerical Bayesian model fitting/inference, we need to: 
+
+
+1. **Assess MCMC convergence**: MCMC is family of algorithm for sampling probability distributions so that it can be adequately characterized (in the Bayesian context the posterior distribution). The MCMC procedure reaches *convergence* once we have sufficient random draws from the posterior distribution. To assess convergence we look at trace plots. The goal is to get "fuzzy caterpillars"-looking curves. 
+
+2. **Summarize MCMC draws**: Summarize and visualize outcome of the random draws using histograms for all draws for each parameter, and calculate expectation, variance, credibility interval, etc.
+
+3. **Prior Sensitivity**: Assess prior sensitivity by changing prior values and check whether it affects the results or not. If it does, that means that the results are too sensitive to that prior, not good!
+
+4. **Make inferences**: We use the values from item (2) to make inferences and answer the research question.
+
+We'll review the example data, and the analytic likelihoods before moving on to the computational approximation of the posterior using JAGS. 
+
+<br>
+<br>
+<br>
+
+
+# Example: Midge Wing Length
+
+We will use this simple example to go through the steps of assessing a Bayesian model and we'll see that MCMC can allow us to approximate the posterior distribution.
+
+Grogan and Wirth (1981) provide data on the wing length (in millimeters) of nine members of a species of midge (small, two-winged flies). 
+
+From these measurements we wish to make inference about the population mean $\mu$.
+
+
+```{r}
+# Load data
+WL.data <- read.csv("../data/MidgeWingLength.csv")
+Y <- WL.data$WingLength
+n <- length(Y)
+
+hist(Y,breaks=10,xlab="Wing Length (mm)") 
+```
+
+We'll also need summary statistics for the data that we calculated last time: 
+```{r}
+m<-sum(Y)/n
+s2<-sum((Y-m)^2)/(n-1)
+```
+
+
+
+## Recall: Setting up the Bayesian Model
+
+We need to define the likelihood and the priors for our Bayesian analysis. Given the analysis that we've just done, let's assume that our data come from a normal distribution with unknown mean, $\mu$ but that we know the variance is $\sigma^2 = 0.025$. That is:
+$$
+\mathbf{Y} \stackrel{\mathrm{iid}}{\sim} \mathcal{N}(\mu, 0.025^2)
+$$
+
+In the last activity we our prior for $\mu$ to be be:
+$$
+\mu \sim \mathcal{N}(1.9, 0.8^2)
+$$
+Together, then, our full model is:
+$$
+\begin{align*}
+\mathbf{Y} & \stackrel{\mathrm{iid}}{\sim} \mathcal{N}(\mu, 0.025^2)\\
+\mu &\sim \mathcal{N}(1.9, 0.8^2)
+\end{align*}
+$$
+
+In the previous activity we wrote a function to calculate $\mu_p$ and $\tau_p$ and then plugged in our numbers:
+
+```{r}
+tau.post<-function(tau, tau0, n){n*tau + tau0}
+mu.post<-function(Ybar, mu0, sig20, sig2, n){
+  weight<-sig2+n*sig20
+  
+  return(n*sig20*Ybar/weight + sig2*mu0/weight)
+}
+```
+
+Finally we plotted 3 things together -- the data histogram, the prior, and the posterior
+
+```{r}
+mu0 <- 1.9
+s20 <- 0.8
+s2<- 0.025 ## "true" variance
+
+mp<-mu.post(Ybar=m, mu0=mu0, sig20=s20, sig2=s2, n=n)
+tp<-tau.post(tau=1/s2, tau0=1/s20, n=n)
+```
+
+```{r}
+x<-seq(1.3,2.3, length=1000)
+hist(Y,breaks=10,xlab="Wing Length (mm)", xlim=c(1.3, 2.3),
+     freq=FALSE, ylim=c(0,8)) 
+lines(x, dnorm(x, mean=mu0, sd=sqrt(s20)), col=2, lty=2, lwd=2) ## prior
+lines(x, dnorm(x, mean=mp, sd=sqrt(1/tp)), col=4, lwd=2) ## posterior
+legend("topleft", legend=c("prior", "posterior"), col=c(2,4), lty=c(2,1), lwd=2)
+```
+
+
+# Numerical evaluation of the posterior with JAGS
+
+Let's show that we can get the same thing from JAGS that we were able to get from the analytic results. You'll need to make sure you have installed JAGS (which must be done outside of R) and then the libraries ${\tt rjags}$ and ${\tt coda}$.
+
+```{r, results="hide", warning=FALSE, message=FALSE}
+# Load libraries
+require(rjags) # does the fitting
+require(coda) # makes diagnostic plots
+##require(mcmcplots) # another option for diagnostic plots
+```
+
+## Specifying the model
+
+First we must encode our choices for our data model and priors to pass them to the fitting routines in JAGS. This involves setting up a ${\tt model}$ that includes the likelihood for each data point and a prior for every parameter we want to estimate. Here is an example of how we would do this for the simple model we fit for the midge data (note that JAGS uses the precision instead of the variance or sd for the normal distribution_:
+
+```{r}
+model1 <- "model{
+
+  ## Likelihood
+  for(i in 1:n){
+    Y[i] ~ dnorm(mu,tau)
+  }
+
+  ## Prior for mu
+  mu        ~ dnorm(mu0,tau0)
+
+} ## close model
+"
+```
+
+Now we will create the JAGS model
+
+```{r}
+model <- jags.model(textConnection(model1), 
+                    n.chains = 1, ## usually do more
+                    data = list(Y=Y,n=n, ## data
+                                mu0=mu0, tau0=1/s20, ## hyperparams
+                                tau = 1/s2 ## known precision
+                                ),
+                    inits=list(mu=3) ## setting an starting val
+                    )
+```
+
+Now we'll run the MCMC and, see how the output looks for a short chain with no burnin:
+
+
+```{r}
+
+samp <- coda.samples(model, 
+        variable.names=c("mu"), 
+        n.iter=1000, progress.bar="none")
+
+```
+
+```{r}
+plot(samp)
+```
+
+
+MCMC is a rejection algorithm that often needs to converge or ``burn-in'' -- that is we need to potentially move until we're taking draws from the correct distribution. Unlike for optimization problems, this does not mean  that the algorithm heads toward a single value. Instead we're looking for a pattern where the draws are seemingly unrelated and random. To assess convergence we look at trace plots, the goal is to get traces that look like ``fuzzy caterpillars''. 
+
+Sometimes at the beginning of a run, if we start far from the area near the posterior mean of the parameter, we will instead get something that looks like a trending time series. If this is the case we have to drop the samples that were taken during the burn-in phase. Here's an example of how to do that.
+
+
+```{r}
+update(model, 10000, progress.bar="none") # Burnin for 10000 samples
+
+samp <- coda.samples(model, 
+        variable.names=c("mu"), 
+        n.iter=20000, progress.bar="none")
+
+```
+
+
+```{r}
+plot(samp)
+```
+
+This is a very fuzzy caterpillar!
+
+We can also use the summary function to examine the samples generated:
+```{r}
+summary(samp)
+```
+
+Let's compare these draws to what we got with our analytic solution:
+
+
+```{r}
+x<-seq(1.3,2.3, length=1000)
+hist(samp[[1]], xlab="mu", xlim=c(1.3, 2.3),
+     freq=FALSE, ylim=c(0,8), main ="posterior samples") 
+lines(x, dnorm(x, mean=mu0, sd=sqrt(s20)), col=2, lty=2, lwd=2) ## prior
+lines(x, dnorm(x, mean=mp, sd=sqrt(1/tp)), col=4, lwd=2) ## posterior
+legend("topleft", legend=c("prior", "analytic posterior"), col=c(2,4), lty=c(2,1), lwd=2)
+```
+
+It worked! 
+
+
+As with the analytic approach, it's always a good idea when you run your analyses to see how sensitive is your result to the priors you choose. Unless you are purposefully choosing an informative prior, we usually want the prior and posterior to look different.
+
+
+## Estimating the population variance
+ 
+One advantage of the numerical approach is that we can choose almost anything we want for the priors on multiple parameters without worrying if they are conjugate, or if we want to include additional information. For example, let's say that, not, we want to force the mean to be positive (and also the data, perhaps), and concurrently estimate the variance. Here is a possible model.
+
+```{r}
+model2 <- "model{
+
+  # Likelihood
+  for(i in 1:n){
+    Y[i] ~ dnorm(mu,tau) T(0,) ## truncates at 0
+  }
+
+  # Prior for mu
+  mu    ~ dnorm(mu0,tau0)
+
+  # Prior for the precision
+  tau   ~ dgamma(a, b)
+
+  # Compute the variance
+  s2       <- 1/tau
+}"
+```
+
+```{r}
+## hyperparams for tau
+a   <- 0.01
+b   <- 0.01
+
+m2 <- jags.model(textConnection(model2), 
+                    n.chains = 1,
+                    data = list(Y=Y, n=n,
+                               mu0=mu0, tau0=1/s20, ## mu hyperparams
+                                a=a, b=b ## tau hyperparams
+                                ),
+                    inits=list(mu=3, tau=10) ## starting vals
+                    )
+```
+
+
+```{r}
+
+samp <- coda.samples(m2, 
+        variable.names=c("mu","s2"), 
+        n.iter=1000, progress.bar="none")
+
+```
+
+```{r}
+plot(samp)
+```
+
+```{r}
+summary(samp)
+```
+
+Now we plot each with their priors:
+
+```{r}
+par(mfrow=c(1,2), bty="n")
+
+hist(samp[[1]][,1], xlab="samples of mu", main="mu")
+lines(x, dnorm(x, mean=mu0, sd=sqrt(s20)), 
+      col=2, lty=2, lwd=2) ## prior
+
+x2<-seq(0, 200, length=1000)
+hist(1/samp[[1]][,2], xlab="samples of tau", main="tau")
+lines(x2, dgamma(x2, shape = a, rate = b), 
+      col=2, lty=2, lwd=2) ## prior
+
+```
+
+We also want to look at the joint distribution of $\mu$ and $\sigma^2$:
+
+```{r}
+plot(as.numeric(samp[[1]][,1]), samp[[1]][,2], 
+     xlab="mu", ylab="s2")
+```
+
+## Practice: Updating the model
+
+Redo the previous analysis placing a gamma prior on $\mu$ as well. Set the prior so that the mean and variance are the same as in the normal example from above (use moment matching). Do you get something similar?
+
+
+
+
+
+<br>
+<br>
+<br>
+
+
+# Aedes data revisited using Bayesian fitting
+
+Now let's do some Bayesian model fitting to *Aedes* thermal performance data. Lets try out the `R2jags` package for this. It wraps the `rjags` package and includes some additional functionalities that make formatting, etc, a bit easier
+
+```{r, warning=FALSE, message=FALSE}
+require(R2jags) # fitting
+require(coda) # diagnostic plots
+require(MCMCvis)
+require(IDPmisc) # makes nice colored pairs plots to look at joint posteriors
+set.seed(1234)
+```
+
+Load the data:
+
+```{r}
+Aaeg.data <- read.csv("../data/AeaegyptiTraitData.csv")
+```
+
+## The Data
+
+These data are traits from *Aedes aegypti* mosquitoes measured across temperature in lab experiments. The traits we have data on thermal performance are:
+- pEA: proportion surviving from egg to adulthood  
+- MDR: mosquito development rate  
+- PDR: parasite development rate (= 1/EIP the extrinsic incubation period)  
+- $\mu$ (mu): death rate (= 1/longevity)  
+
+Note that some of the traits come in multiple forms (e.g., $\mu$ and 1/$\mu$, PDR and EIP, if we're assuming lifespan and development time are exponentially distributed -- a common modeling assumption).
+
+As always, first we have a look at the data:
+
+```{r}
+head(Aaeg.data)
+```
+
+Now let's pull a subset of the data related to mortality/survival:
+
+```{r}
+mu.data <- subset(Aaeg.data, trait.name == "mu")
+lf.data <- subset(Aaeg.data, trait.name == "1/mu")
+par(mfrow=c(1,2), bty="l") 
+plot(trait ~ T, data = mu.data, ylab="mu")
+plot(trait ~ T, data = lf.data, ylab="1/mu")
+```
+
+Note that the $\mu$ data is u-shaped and the lifespan data is hump-shaped.  
+
+We could choose to fit this either way. Since thermal performance metrics are often assumed to be unimodal thermal responses, we will fit lifespan instead of $\mu$ as our example. Thus, we'll need to convert the $\mu$ data to lifespan by taking the inverse. We will combine the data, by assuming that lifespan is $1/\mu$ (not always a good idea, but we're going to do it here so we have more data for the example).
+
+```{r}
+mu.data.inv <- mu.data # make a copy of the mu data
+mu.data.inv$trait <- 1/mu.data$trait # take the inverse of the trait values to convert mu to lifespan
+lf.data.comb <- rbind(mu.data.inv, lf.data) # combine both lifespan data sets together 
+  
+plot(trait ~ T, data = lf.data.comb, ylab="1/mu")
+```
+
+## Two thermal performance curve models
+
+Although there are many functional forms that can be used to describe TPCs, we'll focus on two of the more common (and easy to fit) functions. Traits that respond unimodally but symmetrically to temperature  (often the case for compound traits) can be fit with a quadratic function:
+$$
+f_1(T) = \begin{cases} 0 &\mbox{if } T \leq T_0 \\
+-q (T-T_0) (T-T_m) & \mbox{if } T_0 < T <T_m \\
+ 0 &\mbox{if } T \geq T_m \end{cases}
+$$  
+Traits that respond unimodally but asymetrically can be fited with a Briere function:
+$$
+f_1(T) = \begin{cases} 0 &\mbox{if } T \leq T_0 \\
+q T (T-T_0) \sqrt{T_m-T} & \mbox{if } T_0 < T <T_m \\
+ 0 &\mbox{if } T \geq T_m \end{cases}  
+$$
+
+In both models, $T_0$ is the lower thermal limit, $T_m$ is the upper thermal limit (i.e., where the trait value goes to zero on either end), and $q>0$ scales the height of the curve, (and so also the value at the optimum temperature). Note that above we're assuming that the quandratic must be concave down (hence the negative sign), and that the performance goes to zero outside of the thermal limits. 
+
+
+## The thermal response model file
+
+Unlike the previous Bayesian example, here we will provide jags with the model written as a `.txt` file. This can be in your working directory, or elsewhere (but then inout the full path to it --- ideally a relative path). 
+
+You can either write the text yourself directly to the file, or create it using the sink() function via your R script (see below):
+
+```{r, child="quad.txt", eval=TRUE}
+
+```
+
+Note that the model file `quad.txt` has two mandatory sections (the priors and the likelihood) and one optional section (derived measures calculated from your fitted parameters).
+
+In the example below for a quadratic function, most of the priors are specified via uniform distributions (the two arguments specific the lower and upper bounds, respectively). Note that unlike in R and most other programs, in JAGS, the inverse of the variance of the normal distribution is used, denoted by $\tau (= \frac{1}{\sigma^2}$).  
+
+The likelihood for can be interpreted as follows: the observed data are normally distributed where the mean at a given temperature follows the quadratic equation.
+
+Now, prepare the data for jags: 
+
+```{r}
+# Parameters to Estimate
+parameters <- c("cf.q", "cf.T0", "cf.Tm","cf.sigma", "z.trait.mu.pred")
+
+# Initial values for the parameters
+inits<-function(){list(
+  cf.q = 0.01,
+  cf.Tm = 35,
+  cf.T0 = 5,
+  cf.sigma = rlnorm(1))}
+
+# MCMC Settings: number of posterior dist elements = [(ni - nb) / nt ] * nc
+ni <- 25000 # number of iterations in each chain
+nb <- 5000 # number of 'burn in' iterations to discard
+nt <- 8 # thinning rate - jags saves every nt iterations in each chain
+nc <- 3 # number of chains
+
+# Temperature sequence for derived quantity calculations
+Temp.xs <- seq(0, 45, 0.2)
+N.Temp.xs <-length(Temp.xs)
+
+### Fitting the trait thermal response; Pull out data columns as vectors
+data <- lf.data.comb # this lets us reuse the same generic code: we only change this first line
+trait <- data$trait
+N.obs <- length(trait)
+temp <- data$T
+
+# Bundle all data in a list for JAGS
+jag.data<-list(trait = trait, N.obs = N.obs, temp = temp, Temp.xs = Temp.xs, N.Temp.xs = N.Temp.xs)
+```
+
+Now run the fitting using jags:
+
+```{r}
+lf.fit <- jags(data=jag.data, inits=inits, parameters.to.save=parameters, 
+               model.file="quad.txt", n.thin=nt, n.chains=nc, n.burnin=nb, 
+               n.iter=ni, DIC=T, working.directory=getwd())
+```
+
+Change into "mcmc" type samples for visualization with the `coda` package:
+
+```{r}
+lf.fit.mcmc <- as.mcmc(lf.fit) ## makes and "mcmc" object
+```
+
+## Running diagnostics
+
+We'll show you a few different ways to examine the output. View the summary of parameters (only the first 5 lines, or it will also show you all of your derived quantities):
+
+```{r}
+lf.fit$BUGSoutput$summary[1:5,]
+```
+
+Notice that the effective sample size isn't super high for the main parameters, but the Rhat is near one, indicating reasonable mixing. We can also assess this visually by plott the chains of the three main TPC parameters:
+
+```{r}
+## plot(lf.fit.mcmc[,c(1,3,4)]) ## default coda plot
+MCMCtrace(lf.fit.mcmc,
+          params=c("cf.q", "cf.Tm", "cf.T0"),
+          pdf=FALSE) ## from the MCMCvis package
+```
+
+These all seem to be mixing well. We can check this more completely by, for example examining the ACF of the chains as well (one for each parameter), similarly to a time series:
+
+```{r}
+s1<-as.data.frame(lf.fit.mcmc[[1]])
+par(mfrow=c(3,1))
+for(i in c(1,3,4)) acf(s1[,i], lag.max=20)
+```
+
+There is still a bit of autocorrelation, but it isn't too bad. The chain for $\sigma$ is mixing best. We could reduce the autocorrelation even further by thinning the chain (i.e., change the `nt` parameter to 5 or 10).
+
+The last important diagnostic is to compare the prior and posterior distributions. Various packages in R have bespoke functions to do this. Here we use functions from the [MCMCvis package](https://cran.r-project.org/web/packages/MCMCvis/vignettes/MCMCvis.html). Note for this we need to collect samples from the priors for each parameter of interest and feed it in properly (see the MCMCvis documentation)
+
+
+```{r}
+priors<-matrix(NA, nrow=10000, ncol=3) # 3 params, 1 each
+priors[,1]<- runif(10000, min=0, max=1) ## q
+priors[,2]<- runif(10000, min=25, max=45) ## TM
+priors[,3]<- runif(10000, min=0, max=24) ## T0
+```
+
+
+And here we can plot the posterior density (note that the priors are smoothed because the algorithm uses kernal smoothing instead of the exact distribution)
+
+```{r, message=FALSE, warning=FALSE}
+MCMCtrace(lf.fit.mcmc,
+          params=c("cf.q", "cf.Tm", "cf.T0"),
+          priors=priors,
+          post_zm = FALSE,
+          type= "density",
+          pdf=FALSE) ## from the MCMCvis package
+```
+
+The prior distribution here is very different from the posterior. These data are highly informative for the parameters of interest and are very unlikely to be influenced much by the prior distribution (although you can always change the priors to check this). However, notice that the posteriors of $T_m$ and $T_0$ are slightly truncated by their priors. 
+
+
+
+## Visualizing the joint posterior of parameters 
+
+Now that we've confirmed that things are working well, it's often useful to also look at the joint disrtbution of all of your parameters together. Of course, if you have a high dimensional posterior, rendering a 2-D representation can be difficult. Instead, the standard is to examine the pair-wise posterior distribution, for instance as follows (using the `s1` data frame we created above):
+
+```{r}
+ipairs(s1[,c(1,3,4)], ztransf = function(x){x[x<1] <- 1; log2(x)})
+```
+
+As you can see, estimates of $T_0$ and $T_m$ are highly correlated with $q$-- not surprising given the interplay between them in the quadratic function. This correlation is an important feature of the system, and we use the full posterior distribution that includes this correlation when we want to build the corresponding posterior distribution of the behavior of the quadratic function that we've fit.
+
+
+## Plot the fits
+
+Finally we can plot the fits/predictions. These are the posterior estimates of the fitted lines to the data. Recall that we can take each accepted sample, and plug it into the quandratic equations. This gives us the same number of possible lines as samples. We can then summarize these with the HPD intervals across each temperature. This is especially easy in this case because we've already saved these samples as output in our model file:
+
+```{r}
+plot(trait ~ T, xlim = c(0, 45), ylim = c(0,42), data = lf.data.comb, 
+     ylab = "Lifespan for Ae. aegypti", xlab = "Temperature")
+lines(lf.fit$BUGSoutput$summary[6:(6 + N.Temp.xs - 1), "2.5%"] ~ Temp.xs, 
+      lty = 2, col=2, lwd=2)
+lines(lf.fit$BUGSoutput$summary[6:(6 + N.Temp.xs - 1), "97.5%"] ~ Temp.xs, 
+      lty = 2, col=2, lwd=2)
+lines(lf.fit$BUGSoutput$summary[6:(6 + N.Temp.xs - 1), "mean"] ~ Temp.xs)
+```
+
+## Additional analyses
+
+Once you have all of these samples, you can do many other things. For example, you can use the `which.max()` function to find the optimal temperature for adult lifespan:
+
+```{r}
+Temp.xs[which.max(as.vector(lf.fit$BUGSoutput$summary[6:(6 + N.Temp.xs - 1), "mean"]))]
+```
+
+You can also pull out the lifespan values for each iteration of the MCMC chain over the temperature gradient:
+
+```{r}
+lf.grad <- lf.fit$BUGSoutput$sims.list$z.trait.mu.pred
+dim(lf.grad) # A matrix with 7500 iterations of the MCMC chains at 226 temperatures
+```
+
+These could then be used in other calculations, for example plugging in to calculate $R_0$ or other functions that depend on the life span (population growth rate, etc). The sky is the limit! 
+
+<br>
+<br>
+<br>
+
+# Other _Aedes aegypti_ traits (Independent Practice)
+
+In addition to lifespan/mortality rate for *Aedes aegypti*, this file we used also includes PDR/EIP data. You can also download some other trait data from the [VectorByte -- VecTraits Databases](https://vectorbyte.crc.nd.edu/vectraits-datasets)
+
+Write you own analysis as an independent, self-sufficient R script that produces all the plots in a reproducible workflow when sourced. You may need to use a Briere function instead of quadratic. 
+
+<br>
+<br>
+<br>
+
+

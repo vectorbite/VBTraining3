@@ -47,7 +47,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Data Wrangling in R
 
-### Introductin to Model Fitting and Selection
+### Introduction to Model Fitting and Selection
 
 
 <br>
@@ -73,12 +73,12 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Bayesian Basics 
 
-- [Lecture slides](lectures/VB_Bayes1.pdf),  Lecture video, Analytic Practical 
+- [Lecture slides](lectures/VB_Bayes1.pdf),  Lecture video, [Analytic Practical](activities/VB_Bayes_activity1.html) 
 
 
 ### Fitting Bayesian Models Using JAGS
 
-- [Lecture slides](lectures/VB_Bayes2.pdf),  Lecture video, Computational Practical 
+- [Lecture slides](lectures/VB_Bayes2.pdf),  Lecture video, [Computational Practical](activities/VB_Bayes_activity2.html) 
 
 
 ### Introduction to Bayesian State-Space models for Temporal Data
