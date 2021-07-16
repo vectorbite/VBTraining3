@@ -32,7 +32,7 @@ Grogan and Wirth (1981) provide data on the wing length (in millimeters) of nine
 From these measurements we wish to make inference about the population mean $\mu$.
 
 
-```{r}
+```{r, fig.align='center'}
 # Load data
 WL.data <- read.csv("../data/MidgeWingLength.csv")
 Y <- WL.data$WingLength
@@ -50,7 +50,7 @@ s2<-sum((Y-m)^2)/(n-1)
 round(c(m, s2), 3)
 ```
 
-```{r}
+```{r, fig.align='center'}
 x<-seq(1.4,2.2, length=50)
 hist(Y,breaks=10,xlab="Wing Length (mm)", xlim=c(1.4, 2.2), freq=FALSE) 
 lines(x, dnorm(x, mean=m, sd=sqrt(s2)), col=2)
@@ -165,7 +165,7 @@ mp<-mu.post(Ybar=m, mu0=mu0, sig20=s20, sig2=s2, n=n)
 tp<-tau.post(tau=1/s2, tau0=1/s20, n=n)
 ```
 
-```{r}
+```{r, fig.align='center'}
 x<-seq(1.3,2.3, length=1000)
 hist(Y,breaks=10,xlab="Wing Length (mm)", xlim=c(1.3, 2.3),
      freq=FALSE, ylim=c(0,8)) 

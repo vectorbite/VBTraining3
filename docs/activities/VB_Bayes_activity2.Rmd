@@ -21,6 +21,27 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This section is focused on practicing the basics of Bayesian analysis (both analytic practice and computation using JAGS) for simple unimodal data. This section assumes that you have seen both of the [Bayes lectures](https://vectorbite.github.io/VBTraining3/materials.html#bayesian-basics). We'll review some of the analytic results so that you can compare the results from the previous activity to numerical results. Then we'll continue to a more advanced example fitting TPCs using a Bayesian approach.
 
+## Packages and tools
+
+For this practical you will need to first install [JAGS](https://sourceforge.net/projects/mcmc-jags/), then be sure to install the following packages:
+
+
+```{r, results="hide", warning=FALSE, message=FALSE}
+# Load libraries
+require(rjags) # does the fitting
+require(coda) # makes diagnostic plots
+require(R2jags) # fitting
+require(MCMCvis)
+require(IDPmisc) # makes nice colored pairs plots to look at joint posteriors
+
+##require(mcmcplots) # another option for diagnostic plots, currently unused
+```
+
+
+<br>
+<br>
+<br>
+
 
 # Fitting Models the Bayesian way 
 
@@ -51,7 +72,7 @@ Grogan and Wirth (1981) provide data on the wing length (in millimeters) of nine
 From these measurements we wish to make inference about the population mean $\mu$.
 
 
-```{r}
+```{r, fig.align='center'}
 # Load data
 WL.data <- read.csv("../data/MidgeWingLength.csv")
 Y <- WL.data$WingLength
@@ -109,7 +130,7 @@ mp<-mu.post(Ybar=m, mu0=mu0, sig20=s20, sig2=s2, n=n)
 tp<-tau.post(tau=1/s2, tau0=1/s20, n=n)
 ```
 
-```{r}
+```{r, fig.align='center'}
 x<-seq(1.3,2.3, length=1000)
 hist(Y,breaks=10,xlab="Wing Length (mm)", xlim=c(1.3, 2.3),
      freq=FALSE, ylim=c(0,8)) 
@@ -122,13 +143,6 @@ legend("topleft", legend=c("prior", "posterior"), col=c(2,4), lty=c(2,1), lwd=2)
 # Numerical evaluation of the posterior with JAGS
 
 Let's show that we can get the same thing from JAGS that we were able to get from the analytic results. You'll need to make sure you have installed JAGS (which must be done outside of R) and then the libraries ${\tt rjags}$ and ${\tt coda}$.
-
-```{r, results="hide", warning=FALSE, message=FALSE}
-# Load libraries
-require(rjags) # does the fitting
-require(coda) # makes diagnostic plots
-##require(mcmcplots) # another option for diagnostic plots
-```
 
 ## Specifying the model
 
@@ -173,7 +187,7 @@ samp <- coda.samples(model,
 
 ```
 
-```{r}
+```{r, fig.align='center'}
 plot(samp)
 ```
 
@@ -193,7 +207,7 @@ samp <- coda.samples(model,
 ```
 
 
-```{r}
+```{r, fig.align='center'}
 plot(samp)
 ```
 
@@ -207,7 +221,7 @@ summary(samp)
 Let's compare these draws to what we got with our analytic solution:
 
 
-```{r}
+```{r, fig.align='center'}
 x<-seq(1.3,2.3, length=1000)
 hist(samp[[1]], xlab="mu", xlim=c(1.3, 2.3),
      freq=FALSE, ylim=c(0,8), main ="posterior samples") 
@@ -269,7 +283,7 @@ samp <- coda.samples(m2,
 
 ```
 
-```{r}
+```{r, fig.align='center'}
 plot(samp)
 ```
 
@@ -279,7 +293,7 @@ summary(samp)
 
 Now we plot each with their priors:
 
-```{r}
+```{r, fig.align='center'}
 par(mfrow=c(1,2), bty="n")
 
 hist(samp[[1]][,1], xlab="samples of mu", main="mu")
@@ -295,7 +309,7 @@ lines(x2, dgamma(x2, shape = a, rate = b),
 
 We also want to look at the joint distribution of $\mu$ and $\sigma^2$:
 
-```{r}
+```{r, fig.align='center'}
 plot(as.numeric(samp[[1]][,1]), samp[[1]][,2], 
      xlab="mu", ylab="s2")
 ```
@@ -315,19 +329,13 @@ Redo the previous analysis placing a gamma prior on $\mu$ as well. Set the prior
 
 # Aedes data revisited using Bayesian fitting
 
-Now let's do some Bayesian model fitting to *Aedes* thermal performance data. Lets try out the `R2jags` package for this. It wraps the `rjags` package and includes some additional functionalities that make formatting, etc, a bit easier
+Now let's do some Bayesian model fitting to *Aedes* thermal performance data. Lets try out the `R2jags` package for this. It wraps the `rjags` package and includes some additional functionalities that make formatting, etc, a bit easier. We'll also use the MCMCvis and IDPmisc packages for some additional visualizations.
 
-```{r, warning=FALSE, message=FALSE}
-require(R2jags) # fitting
-require(coda) # diagnostic plots
-require(MCMCvis)
-require(IDPmisc) # makes nice colored pairs plots to look at joint posteriors
-set.seed(1234)
-```
 
-Load the data:
+First, we load the data:
 
 ```{r}
+set.seed(1234)
 Aaeg.data <- read.csv("../data/AeaegyptiTraitData.csv")
 ```
 
@@ -349,7 +357,7 @@ head(Aaeg.data)
 
 Now let's pull a subset of the data related to mortality/survival:
 
-```{r}
+```{r, fig.align='center'}
 mu.data <- subset(Aaeg.data, trait.name == "mu")
 lf.data <- subset(Aaeg.data, trait.name == "1/mu")
 par(mfrow=c(1,2), bty="l") 
@@ -361,7 +369,7 @@ Note that the $\mu$ data is u-shaped and the lifespan data is hump-shaped.
 
 We could choose to fit this either way. Since thermal performance metrics are often assumed to be unimodal thermal responses, we will fit lifespan instead of $\mu$ as our example. Thus, we'll need to convert the $\mu$ data to lifespan by taking the inverse. We will combine the data, by assuming that lifespan is $1/\mu$ (not always a good idea, but we're going to do it here so we have more data for the example).
 
-```{r}
+```{r, fig.align='center'}
 mu.data.inv <- mu.data # make a copy of the mu data
 mu.data.inv$trait <- 1/mu.data$trait # take the inverse of the trait values to convert mu to lifespan
 lf.data.comb <- rbind(mu.data.inv, lf.data) # combine both lifespan data sets together 
@@ -460,7 +468,7 @@ lf.fit$BUGSoutput$summary[1:5,]
 
 Notice that the effective sample size isn't super high for the main parameters, but the Rhat is near one, indicating reasonable mixing. We can also assess this visually by plott the chains of the three main TPC parameters:
 
-```{r}
+```{r, fig.align='center'}
 ## plot(lf.fit.mcmc[,c(1,3,4)]) ## default coda plot
 MCMCtrace(lf.fit.mcmc,
           params=c("cf.q", "cf.Tm", "cf.T0"),
@@ -469,7 +477,7 @@ MCMCtrace(lf.fit.mcmc,
 
 These all seem to be mixing well. We can check this more completely by, for example examining the ACF of the chains as well (one for each parameter), similarly to a time series:
 
-```{r}
+```{r, fig.align='center'}
 s1<-as.data.frame(lf.fit.mcmc[[1]])
 par(mfrow=c(3,1))
 for(i in c(1,3,4)) acf(s1[,i], lag.max=20)
@@ -490,7 +498,7 @@ priors[,3]<- runif(10000, min=0, max=24) ## T0
 
 And here we can plot the posterior density (note that the priors are smoothed because the algorithm uses kernal smoothing instead of the exact distribution)
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, fig.align='center'}
 MCMCtrace(lf.fit.mcmc,
           params=c("cf.q", "cf.Tm", "cf.T0"),
           priors=priors,
@@ -507,7 +515,7 @@ The prior distribution here is very different from the posterior. These data are
 
 Now that we've confirmed that things are working well, it's often useful to also look at the joint disrtbution of all of your parameters together. Of course, if you have a high dimensional posterior, rendering a 2-D representation can be difficult. Instead, the standard is to examine the pair-wise posterior distribution, for instance as follows (using the `s1` data frame we created above):
 
-```{r}
+```{r, fig.align='center'}
 ipairs(s1[,c(1,3,4)], ztransf = function(x){x[x<1] <- 1; log2(x)})
 ```
 
@@ -518,7 +526,7 @@ As you can see, estimates of $T_0$ and $T_m$ are highly correlated with $q$-- no
 
 Finally we can plot the fits/predictions. These are the posterior estimates of the fitted lines to the data. Recall that we can take each accepted sample, and plug it into the quandratic equations. This gives us the same number of possible lines as samples. We can then summarize these with the HPD intervals across each temperature. This is especially easy in this case because we've already saved these samples as output in our model file:
 
-```{r}
+```{r, fig.align='center'}
 plot(trait ~ T, xlim = c(0, 45), ylim = c(0,42), data = lf.data.comb, 
      ylab = "Lifespan for Ae. aegypti", xlab = "Temperature")
 lines(lf.fit$BUGSoutput$summary[6:(6 + N.Temp.xs - 1), "2.5%"] ~ Temp.xs, 
