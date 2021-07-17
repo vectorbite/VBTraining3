@@ -93,7 +93,7 @@ Stochastic simulation is a way to understand variability in a system and for cal
 
 `r sk2()`
 
-Monte Carlo (MC) methods are ``a broad class of computational algorithms that rely on  `r myred("repeated random sampling")` to obtain numerical results.'' - Wikipedia 
+Monte Carlo (MC) methods are ``a broad class of computational algorithms that rely on  `r mygrn("repeated random sampling")` to obtain numerical results.'' - Wikipedia 
 
 
 
@@ -125,16 +125,16 @@ A basic algorithm:
  
 -----------------
 
-We typically have three reasons to use MC
+We typically have four reasons to use MC
  
 1. Explore possible patterns/behaviors that a model can exhibit.
 1. Create synthetic data to use in place of real data to test estimation procedures.
+1. Estimate quantities that are difficult to calculate directly.
 1. Understand and quantify uncertainty.
  
+`r sk2()`
 
-\vfill
-
-  
+In our Bayesian analyses we're primarily leaning on MC for the 3rd point, but we get the last for free along with it. 
 
 
  
@@ -143,7 +143,7 @@ We typically have three reasons to use MC
 We use Monte Carlo (MC) methods to generate random deviates in the right ratios from the target posterior called ___`r myblue("draws")`___ or samples. We then use these draws to approximate our distribution and make inference statements (estimates, CIs, etc). 
 
 `r sk2()`
-We can also use the draws to calculate the posterior distribution of `r myblue("any function of our estimated parameters")`. As the number of draws/samples gets large we can approximate these quantities arbitrarily high precision.
+We can also use the draws to calculate the posterior distribution of `r mygrn("any function of our estimated parameters")`. As the number of draws/samples gets large we can approximate these quantities arbitrarily high precision.
 
   
 
@@ -151,10 +151,13 @@ We can also use the draws to calculate the posterior distribution of `r myblue("
  
 ##  The ``plug-in principle''
 
-Using MC to perform these calculations (and to propagate the uncertainty) rests on the idea of the plug-in principle: 
-\begin{center}
- `r myblue("A summary statistic or other feature of a distribution   (e.g. expected value) can be approximated by the same summary/feature of an _empirical sample_ from that distribution (e.g., sample mean).")` 
-\end{center}
+Using MC to perform these calculations (and to propagate the uncertainty) rests on the idea of the `r myred("plug-in principle")`: 
+
+`r sk2()`
+
+`r myblue("A summary statistic or other feature of a distribution  (e.g. expected value) can be approximated by the same summary/feature of an empirical sample from that distribution (e.g., sample mean).")` 
+
+`r sk2()`
 
 The approximation becomes more accurate if the number of samples is very large.
 `r sk2()`
@@ -203,9 +206,9 @@ A  `r myblue("Markov Chain")` is a randomly generated sequence of numbers where 
 `r sk1()`
 
 
-\begin{center}
-\includegraphics[scale=0.275,trim=30 80 0 70]{MCMC}
-\end{center}
+```{r, fig.align='center', out.width="60%"}
+include_graphics("MCMC.jpg")
+```
 
 \vfill
 \hfill {\tiny Plot -- Ian Murray (http://mlg.eng.cam.ac.uk/zoubin/tut06/mcmc.pdf)} 
@@ -217,7 +220,7 @@ A  `r myblue("Markov Chain")` is a randomly generated sequence of numbers where 
 One specific algorithm that is commonly used is  `r myblue("Gibbs Sampling")`.  
 
 `r sk2()`
-Gibbs sampling leverages the _conditional_ distributions of parameters to generate samples by proposing them one at a time. This is the algorithm implemented in the popular Bayesian packages BUGS, WinBUGS, and JAGS/${\tt rjags}$. 
+Gibbs sampling leverages the _`r mygrn("conditional")`_ distributions of parameters to generate samples by proposing them one at a time. This is the algorithm implemented in the popular Bayesian packages BUGS, WinBUGS, and JAGS/${\tt rjags}$. 
 
 `r sk2()` 
 We will treat Gibbs sampling and other of the numerical methods as mostly "black boxes". We'll learn to diagnose output from these later on in the practical component.
@@ -230,13 +233,16 @@ We will treat Gibbs sampling and other of the numerical methods as mostly "black
 ##  What do we do with Posterior Samples?
 
 We can treat the draws much like we would data:
+
+`r sk1()`
  
 -  Calculate posterior summaries (mean, median, mode, etc) just like we would a data sample
 -  Calculate precision of the summaries (e.g., sample variance)
 -  CIs via quantiles (order statistics of the data) or HPD intervals (using ${\tt CODA}$ package in ${\tt R}$)
  
+`r sk1()`
 
-If the samples are parameters in a complex model, we can plug them all in, one at a time to get a range of possible predictions from the model (we'll see this in the practical bit, later on). 
+If the samples are parameters in a complex model, we can plug them all in, one at a time, to get a range of possible predictions from the model (we'll see this in the practical bit, later on). 
 
   
 
@@ -253,6 +259,8 @@ where:
 -  Penalty: $p_D = \bar{D} -D(\bar{\theta})$
 -  $D(\bar{\theta})$: deviance at the posterior mean of $\theta$
 -  $\bar{D}$: average deviance across the posterior samples.
+
+`r sk1()`
  
  \hfill $\rightarrow$ `r myred("Already implemented in JAGS!")`
   
@@ -263,7 +271,8 @@ where:
 
 JAGS implements a version of Gibbs sampling in a fairly easy to use package.  
 
-\bigskip
+`r sk2()`
+
 
 That is, once you specify the appropriate  __`r myblue("sampling distribution/likelihood")`__ and any  __`r myred("priors")`__ for the parameters, it will use MCMC to obtain samples from the posterior in the right ratios so that we can calculate whatever we want.
 
@@ -275,6 +284,8 @@ That is, once you specify the appropriate  __`r myblue("sampling distribution/li
 ##  Specifying models in JAGS  
 
 The trickiest and most important part of each analysis is properly specifying the model for all of the data that you want to fit. Before you begin to code, you need to decide:
+
+`r sk1()`
  
 - What is the relationship between your predictors and your response?
 - What kind of probability distribution should you use to describe your response variable?
@@ -288,8 +299,12 @@ The trickiest and most important part of each analysis is properly specifying th
 
 There is one longish practical focusing on using JAGS/${\tt rjags}$ to conduct a analysis. It has two main chuncks: 
 
+`r sk1()`
+
 1. Comparing your conjugate Bayesian analysis on the midge data to the approximate results with JAGS, and expanding by estimating the variance. 
 1. Fitting the Aedes trait data and fit a TPC to the data using JAGS. 
+
+`r sk1()`
 
 For both you'll also be led through visualizing your MCMC chains and your posterior distributions of parameters and predictions.   
 
