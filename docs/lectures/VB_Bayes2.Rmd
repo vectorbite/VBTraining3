@@ -31,7 +31,7 @@ knitr::opts_chunk$set(cache = FALSE,
                       highlight = TRUE, 
                       prompt = FALSE, 
                       crop = TRUE,
-                      comment = "#>",
+                      comment = ">",
                       collapse = TRUE)
 library(knitr)
 library(kableExtra)
@@ -58,6 +58,7 @@ insert_slide_break <- make_latex_decorator("----", "\n")
 insert_inc_bullet <- make_latex_decorator("> *", "*")
 insert_html_math <- make_latex_decorator("", "$$")
 ## classoption: aspectratio=169
+set.seed(42)
 ```
 
 
@@ -168,7 +169,7 @@ The approximation becomes more accurate if the number of samples is very large.
  
 ---------------
 
-___`r myred("Example:")`___ Numerical 92\% CI of a normal distribution with mean $\mu$ and variance $\sigma^2$. 
+___`r myred("Example:")`___ Numerical 92\% CI of a beta distribution with parameters $a$ and $b$. 
 
 `r sk2()`
 Imagine we want to find, for some unknown reason, the central 92\% CI for a normal distribution.  How can we calculate this without using a look-up table, or similar function?
@@ -188,7 +189,8 @@ If we are able to generate samples from the desired distribution (which we'll ta
 alpha<-0.04; N<-2000
 x<-rbeta(N, 2, 20) ## take samples
 o<-order(x) ## order them
-o[c(N*alpha/2, N*(1-(alpha/2)))] ## take the appropriate samples
+w<-o[c(N*alpha/2, N*(1-(alpha/2)))] ## find the appropriate samples
+round(x[w], 3) ## CI
 ```
 
   
