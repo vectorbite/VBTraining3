@@ -1,0 +1,300 @@
+---
+title: |
+    | VectorBiTE Methods Training
+    | Probability and Statistics Fundamentals 
+    | Solutions to Exercises
+author: | 
+    | The VectorBiTE Team
+    | (Leah R. Johnson, Virginia Tech)
+date: "Summer 2021"
+output:
+  html_document: 
+    number_sections: false
+  pdf_document: 
+    number_sections: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(123)
+```
+
+
+### Question 1:  For the six-sided fair die, what is $f_k$ if $k=7$? $k=1.5$?
+
+<br>
+
+Answer: both of these are zero, because the die cannot take these values.
+
+<br>
+<br>
+<br>
+<br>
+\hfill\break
+
+### Question 2: For the fair 6-sided die, what is $F(3)$?  $F(7)$? $F(1.5)$?
+
+Answer: The CDF total probability of having a value less than or equal to its argument. Thus $F(3)= 1/2$, $F(7)=1$, and $F(1.5)=1/6$
+
+<br>
+<br>
+<br>
+<br>
+\hfill\break
+
+### Question 3: For a normal distribution with mean 0, what is $F(0)$? 
+
+<br>
+
+Answer: The normal distribution is symmetric around its mean, with half of its probability on each side. Thus, $F(0)=1/2$
+
+<br>
+<br>
+<br>
+<br>
+\hfill\break
+
+### Question 4: Summation Notation Practice
+
+
+$i$   | 1   | 2    | 3   | 4    |
+------|-----|------|-----|------|
+$Z_i$ | 2.0 | -2.0 | 3.0 | -3.0 |
+
+(i) __Compute $\sum_{i=1}^{4}{z_i}$__  = 0 <br>
+(ii) __Compute $\sum_{i=1}^4{(z_i - \bar{z})^2}$__  = 26 <br>
+(iii) __What is the sample variance? Assume that the $z_i$ are i.i.d..__  _Note that i.i.d.~stands for "independent and identically distributed"._ <br>
+
+Solution:
+$$
+s^2= \frac{\sum_{i=1}^N(Y_i - \bar{Y})^2}{N-1} = \frac{26}{3}
+= 8\times \frac{2}{3}
+$$
+<br>
+
+(iv) __For a general set of $N$ numbers, $\{X_1, X_2, \dots, X_N \}$ and
+$\{Y_1, Y_2, \dots, Y_N \}$ show that__
+$$
+\sum_{i=1}^N{(X_i - \bar{X})(Y_i - \bar{Y})} = \sum_{i=1}^N{(X_i-\bar{X})Y_i}
+$$
+
+<br>
+Solution: First, we multiply through and distribute:
+$$
+\sum_{i=1}^N(X_i-\bar{X})(Y_i-\bar{Y}) = \sum_{i=1}^N(X_i-\bar{X})Y_i
+- \sum_{i=1}^N(X_i-\bar{X})\bar{Y}
+$$
+Next note that $\bar{Y}$ (the mean of the $Y_i$s) doesn't depend on $i$ so we can pull it out of the summation:
+$$
+\sum_{i=1}^N(X_i-\bar{X})(Y_i-\bar{Y}) = \sum_{i=1}^N(X_i-\bar{X})Y_i
+- \bar{Y} \sum_{i=1}^N(X_i-\bar{X}).
+$$
+Finally, the last sum must be zero because
+$$
+\sum_{i=1}^N(X_i-\bar{X}) = \sum_{i=1}^N X_i- \sum_{i=1}^N \bar{X} = N\bar{X} - N\bar{X}=0.
+$$
+Thus
+\begin{align*}
+\sum_{i=1}^N(X_i-\bar{X})(Y_i-\bar{Y}) &= \sum_{i=1}^N(X_i-\bar{X})Y_i - \bar{Y}\times 0\\
+& = \sum_{i=1}^N(X_i-\bar{X})Y_i.
+\end{align*}
+
+<br>
+<br>
+<br>
+<br>
+\hfill\break
+
+### Question 5: Properites of Expected Values
+
+__Using the definition of an expected value above and with X and Y having the same probability distribution, show that:__
+
+\begin{align*}
+ \text{E}[X+Y]  & = \text{E}[X] + \text{E}[Y]\\  
+ & \text{and} \\
+ \text{E}[cX]  & = c\text{E}[X]. \\
+\end{align*}
+
+
+
+__Given these, and the fact that $\mu=\text{E}[X]$, show that:__
+
+\begin{align*}
+ \text{E}[(X-\mu)^2]  = \text{E}[X^2] - (\text{E}[X])^2
+\end{align*}
+
+__This gives a formula for calculating variances (since $\text{Var}(X)=  \text{E}[(X-\mu)^2]$).__
+
+Solution: Assuming $X$ and $Y$ are both i.i.d. with distribution $f(x)$. The expectation of $X+Y$ is defined as
+\begin{align*}
+ \text{E}[X+Y]  & =  \int (X+Y) f(x)dx \\
+              & =  \int (X f(x) +Y f(x))dx  \\
+              & =  \int X f(x)dx  +\int Y f(x)dx  \\
+               & = \text{E}[X] + \text{E}[Y]  
+ \end{align*}
+ Similarly
+ \begin{align*}
+\text{E}[cX]   & =  \int cXf(x)dx \\
+              & =  c \int Xf(x) dx  \\
+              & = c\text{E}[X]. \\
+\end{align*}
+Thus we can re-write:
+\begin{align*}
+ \text{E}[(X-\mu)^2]  & = \text{E}[ X^2 - 2X\mu + \mu^2] \\
+                        & = \text{E}[X^2] - 2\mu\text{E}[X] + \mu^2 \\
+                        & = \text{E}[X^2] -2\mu^2 + \mu^2 \\
+                        & = \text{E}[X^2] - \mu^2 \\ 
+ & = \text{E}[X^2] - (\text{E}[X])^2.
+\end{align*}
+
+<br>
+<br>
+<br>
+<br>
+
+\hfill\break
+
+### Question 6: Functions of Random Variables
+
+__Suppose that $\mathrm{E}[X]=\mathrm{E}[Y]=0$, $\mathrm{var}(X)=\mathrm{var}(Y)=1$, and
+$\mathrm{corr}(X,Y)=0.5$.__
+
+(i) Compute $\mathrm{E}[3X-2Y]$; and 
+(ii) $\mathrm{var}(3X-2Y)$.
+(iii) Compute $\mathrm{E}[X^2]$.
+
+Solution:
+
+(i) Using the properties of expectations, we can re-write this as:
+\begin{align*}
+\mathrm{E}[3X-2Y] & = \mathrm{E}[3X] + \mathrm{E}[-2Y]\\
+& = 3 \mathrm{E}[X] -2 \mathrm{E}[Y]\\
+& = 3 \times 0 -2 \times 0\\
+&=0
+\end{align*}
+
+
+\hfill\break
+
+(ii) Using the properties of variances, we can re-write this as:
+\begin{align*}
+\mathrm{var}(3X-2Y) & = 3^2\text{Var}(X) + (-2)^2\text{Var}(Y) + 2(3)(-2)\text{Cov}(XY)\\
+& =  9 \times 1 + 4 \times 1 -12 \text{Corr}(XY)\sqrt{\text{Var}(X)\text{Var}(Y)}\\
+& = 9+4 -12 \times 0.5\times1\\
+&=7
+\end{align*}
+
+\hfill\break
+
+(iii) Recalling from Question 5 that the variance is $\mathrm{var}(X) = \text{E}[X^2] - (\text{E}[X])^2$, we can re-arrange to obtain:
+\begin{align*}
+\mathrm{E}[X^2] & = \mathrm{var}(X) + (\mathrm{E}[X])^2\\
+ & = 1+(0)^2 \\
+ & =1
+\end{align*}
+
+\hfill\break
+
+
+
+
+### The Sampling Distribution
+
+Suppose we have a random sample $\{Y_i, i=1,\dots,N \}$, where $Y_i \stackrel{\mathrm{i.i.d.}}{\sim}N(\mu,4)$ for $i=1,\ldots,N$.
+
+i. What is the variance of the _sample mean_?
+
+$$\displaystyle \mathrm{Var}(\bar{Y}) =
+\mathrm{Var}\left(\frac{1}{N}\sum_{i=1}^N Y_i\right) =
+\frac{N}{N^2}\mathrm{Var}(Y) =\frac{4}{N}$$.
+
+This is the derivation for the variance of the _sampling distribution_.
+
+<br>
+\hfill\break
+
+ii. What is the expectation of the _sample mean_?
+
+ $$\displaystyle\mathrm{E}[\bar{Y}] = \frac{N}{N}\mathrm{E}(Y) = \mu.$$
+This is the mean of the _sampling distribution_. 
+
+<br>
+
+iii.  What is the variance for another i.i.d. realization $Y_{ N+1}$?
+
+  $\displaystyle \mathrm{Var}(Y) = 4$, because this is a sample directly from the population distribution.
+  
+<br>
+ \hfill\break 
+
+iv.  What is the standard error of $\bar{Y}$?
+
+Here, again, we are looking at the distribution of the sample mean, so we must consider the sampling distribution, and the standard error (aka the standard distribution) is just the square root of the variance from part i.
+
+ $$\displaystyle \mathrm{se}(\bar{Y}) = \sqrt{\mathrm{Var}(\bar{Y})} =\frac{2}{\sqrt{N}}$$.
+
+\hfill\break
+
+### Hypothesis Testing and Confidence Intervals
+
+```{r, echo=FALSE}
+m<-12
+```
+
+
+Suppose we sample some data $\{Y_i, i=1,\dots,n \}$, where $Y_i \stackrel{\mathrm{i.i.d.}}{\sim}N(\mu,\sigma^2)$ for $i=1,\ldots,n$, and that you want to test the null hypothesis $H_0: ~\mu=`r m`$ _vs._ the alternative $H_a: \mu \neq ` r m`$, at the $0.05$ significance level.
+
+i. What test statistic would you use?  How do you estimate $\sigma$?
+ii. What is the distribution for this test statistic _if_ the null is true?
+iii. What is the distribution for the test statistic if the null is true and $n \rightarrow \infty$?
+iv. Define the test rejection region. (I.e., for what values of the test statistic would you reject the null?)
+v. How  would compute the $p$-value associated with a particular sample?
+vi. What is the 95\% confidence interval for $\mu$? How should one interpret this interval?
+vii. If $\bar{Y} = 11$, $s_y = 1$, and $n=9$, what is the test result?  What is the 95\% CI for $\mu$?
+
+<br>
+<br>
+\hfill\break
+
+This question is asking you think about the hypothesis that the mean of your distribution is equal to `r m`. I give you the distribution of the data themselves (i.e., that they're normal). To test the hypothesis, you work with the sampling distribution (i.e., the distribution of the sample mean) which is: $\bar{Y}\sim N\left(\mu, \frac{\sigma^2}{n}\right)$. 
+
+\hfill\break
+
+i.  If we knew $\sigma$, we could use as our test statistic $z=\displaystyle \frac{\bar{y} - `r m`}{\sigma/\sqrt{n}}$. However, here we need to estimate $\sigma$ so we use $z=\displaystyle \frac{\bar{y} - `r m`}{s_y/\sqrt{n}}$ where 
+$\displaystyle s_{y} = \sqrt{\frac{\sum_{i=1}^n(y_i - \bar{y})^2}{n-1}}$.<br>
+
+\hfill\break
+
+ii.  If the null is true, the $z \sim t_{n-1}(0,1)$. Since we estimate the mean frm the data, the degrees of freedom is $n-1$.<br>
+
+\hfill\break
+
+iii.  As $n$ approaches infinity, $t_{n-1}(0,1) \rightarrow N(0,1)$.<br>
+
+\hfill\break
+
+iv.  You reject the null for $\{z: |z| > t_{n-1,\alpha/2}\}$.<br>
+
+\hfill\break
+
+v.  The p-value is $2\Pr(Z_{n-1} >|z|)$. <br>
+
+\hfill\break
+
+vi.  The 95\% CI is $\bar{Y} \pm \frac{s_{y}}{\sqrt{n}}
+t_{n-1,\alpha/2}$.
+
+
+For 19 out of 20 different samples, an interval constructed in this way
+will include the true value of the mean, $\mu$. <br>
+
+
+\hfill\break
+
+
+vii.  $z = (11-12)/(1/3) = -3$ and $2\Pr(Z_{8} >|z|) = .017$, so we do
+reject the null. <br> The 95\% CI for $\mu$ is $11 \pm \frac{1}{3}2.3 = (10.23, 11.77)$.
+
+<br>
+<br>
+
