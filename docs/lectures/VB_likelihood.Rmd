@@ -119,7 +119,11 @@ $$
 
 ## Likelihoods
 
-Recall that $f(Y_i)$ is the pmf (pdf), and it tells us the probability (density) of some yet to be observed datum $Y_i$ given a probability distribution and its parameters. If we make many observations, $\mathbf{Y}=y_1, y_2, \dots, y_n$, we are interested how probable it was that we obtained these data, jointly. We call this the ``likelihood'' of the data, and denote it as 
+Recall that $f(Y_i)$ is the pmf (pdf), and it tells us the probability (density) of some yet to be observed datum $Y_i$ given a probability distribution and its parameters. 
+
+`r sk1()`
+
+If we make many observations, $\mathbf{Y}=y_1, y_2, \dots, y_n$, we are interested how probable it was that we obtained these data, jointly. We call this the __`r myred("likelihood")`__ of the data, and denote it as 
 \begin{align*}
 \mathcal{L}(\theta; Y)=f_\theta(Y)
 \end{align*}
@@ -128,11 +132,11 @@ where $f_\theta(Y)$ is the pdf (or pmf) of the data interpreted as a function of
 
 ---------------------
 
-For instance, for binomial data:
+For instance, for _`r mygrn("binomial")`_ data:
 \begin{align*}
 \text{Pr}(Y_i=k | \theta=p)=  {N \choose k} p^k(1-p)^{N-k}.
 \end{align*}
-If we have data  $\mathbf{Y}=y_1, y_2, \dots, y_n$ that are i.i.d. as binomial RVs, the probabilities multiply, and the likelihood is:
+If we have data  $\mathbf{Y}=y_1, y_2, \dots, y_n$ that are i.i.d. as binomial RVs, the `r myblue("probabilities multiply")`, and the likelihood is:
 \begin{align*}
 \mathcal{L}(\theta; Y) = \prod_{i=1}^n {N \choose y_i} p^{y_i}(1-p)^{N-y_i}.
 \end{align*}
@@ -141,7 +145,7 @@ If we have data  $\mathbf{Y}=y_1, y_2, \dots, y_n$ that are i.i.d. as binomial R
 
 ## Likelihoods vs. probability
 
-``Likelihood is the hypothetical probability [density] that an event that has already occurred would yield a specific outcome. The concept differs from that of a probability in that a probability refers to the occurrence of future events, while a likelihood refers to past events with known outcomes.'' (1) 
+"Likelihood is the hypothetical probability [density] that an event that has already occurred would yield a specific outcome. The concept differs from that of a probability in that a probability refers to the occurrence of future events, while a `r myblue("likelihood refers to past events with known outcomes")`." (1) 
 
 `r sk2()`
 
@@ -157,7 +161,11 @@ Further, the likelihood is a function of $\theta$ (the parameters), assuming fix
 
 ------- 
 
-We are usually interested in relative likelihoods -- e.g., is it more likely that the data we observed came from a distribution with parameters $\theta_1$ or $\theta_2$? Thus we only worry about the likelihood up to a constant. Further, it is often easier to work with the log-likelihood:
+We are usually interested in `r mygrn("relative likelihoods")` -- e.g., is it more likely that the data we observed came from a distribution with parameters $\theta_1$ or $\theta_2$? Thus we only worry about the likelihood up to a constant. 
+
+`r sk2()`
+
+Further, it is often easier to work with the log-likelihood:
 \begin{align*}
 L(\theta; Y) = \ell(\theta; Y) = \log(\mathcal{L}(\theta;Y))
 \end{align*}
@@ -167,12 +175,16 @@ where $\log(\cdot)$ is the natural log.
 
 ## Maximum Likelihood Estimators (MLEs)
 
-We can find the parameters that are most likely to have generated our data -- the maximum likelihood estimate (mle) of the parameters. To do this we maximize the likelihood (or equivalently minimizing the negative log-likelihood) by taking its derivative and setting it equally to zero:
+We can find the parameters that are most likely to have generated our data -- the `r mygrn("maximum likelihood estimate")` (MLE) of the parameters. To do this we maximize the likelihood (or equivalently minimizing the negative log-likelihood) by taking its derivative and setting it equally to zero:
 \begin{align*}
 \frac{\partial \mathcal{L}}{\partial\theta_j} =0 \text{\hspace{0.5 cm} or \hspace{0.5 cm}}
 -\frac{\partial L}{\partial \theta_j} = 0 
 \end{align*}
-where $j$ denotes the $j^{\mathrm{th}}$ parameter. We usually denote the MLE as $\hat{\theta}_j$.
+where $j$ denotes the $j^{\mathrm{th}}$ parameter. 
+
+`r sk1()`
+
+We usually denote the MLE as $\hat{\theta}_j$.
 
 
 -----------
@@ -181,12 +193,12 @@ The likelihood __`r myred("DOES NOT")`__ tell you the probability that parameter
 
 `r sk2()`
 
-To obtain that quantity, usually called the ``posterior probability of the parameters'' in Bayesian statistics, you have to use Bayes Theorem (later lectures). 
+To obtain that quantity, usually called the "posterior probability of the parameters" in Bayesian statistics, you have to use Bayes Theorem (later lectures). 
 
 
 ---------------
 
-`r myred("A Simple Example")`: MLE for mean midge-wing lengths
+`r myred("A Simple Example")`: MLE for mean midge wing lengths
 
 `r sk2()`
 
@@ -201,7 +213,7 @@ hist(midgedat$WingLength, xlab="Wing Length (mm)", main="",
 
 ## Likelihood profile in R
 
-We interpret the negative log-likelihood (NLL) as a `r myred("function of the parameters")` assuming that the data are constant. We visualize the NLL with a `r myblue("profile")` $\rightarrow$ evaluate the NLL for many possible values of a parameter. The `r mygrn("best")` estimate has the lowest NLL value. 
+We interpret the negative log-likelihood (NLL) as a `r myred("function of the parameters")` assuming that the data are constant. We visualize the NLL with a `r myblue("profile")` $\rightarrow$ evaluate the NLL for many possible values of a parameter. The __`r mygrn("best")`__ estimate has the lowest NLL value. 
 
 ::: columns
 
@@ -259,7 +271,7 @@ abline(v=mus[which.min(mynll)], col=2)
 
 ## Next Steps
 
-There are two sets of practicals to help you get comfortable with likelihoods:
+There are two sets of tasks in the likelihood practical to help you get comfortable with likelihoods:
 
 `r sk2()`
 

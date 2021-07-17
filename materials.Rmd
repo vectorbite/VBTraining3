@@ -35,7 +35,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 2. In addition / alternatively to pre-work element (1), here are some resources for brushing up on R at the end of the Intro R Chapter you can try. But there are many more resources online (e.g., this and this ) -- pick something that suits your learning style).
 
-3. Review background on introductory probability and statistics (coming soon)
+3. Review background on [introductory probability and statistics](activities/Stats_review.html) ([solutions to exercises](activities/Stats_review_soln.html)) 
 
 4. Inculcate the coding Jedi inside of you - or the Sith - whatever works.
 
@@ -45,7 +45,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Introduction to the VectorByte databases
 
-- This component will be delivered live synchronously
+- This component will be delivered live & synchronously (with a recording to be uploaded later)
 
 ### Data Wrangling in R
 
@@ -68,12 +68,12 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Simple Models for Temporal Data (based on Linear Models)
 
-- [Lecture slides](lectures/VB_TS.pdf),  Lecture video, [Practical](activities/VB_TimeSeries.html) 
+- [Lecture slides](lectures/VB_TS.pdf),  Lecture video, [Practical](activities/VB_TimeSeries.html), [Airline "solution"](activities/VB_TS_exercise_soln.html) 
 
 
 ### Review of Likelihoods 
 
-- [Lecture slides](lectures/VB_likelihood.pdf),  Lecture video, [Analytic Practical 1](activities/VB_likelihood_activity.html) 
+- [Lecture slides](lectures/VB_likelihood.pdf),  Lecture video, [Practical](activities/VB_likelihood_activity.html) 
 
 <br>
 <br>
