@@ -313,7 +313,7 @@ As we saw earlier for the Beta-Binomial model, the posterior expectation can be 
 $$
  \mathrm{E}\{\theta |Y=y\} =   \frac{n}{a + b +n} \bar{y} + \frac{a+b}{a+b+n} \theta_0.
 $$
-Thus $a$ and $b$ can be interpreted here as ``prior data'' where $a$ is the number of ``prior successes'' and $a+b$ is the ``prior sample size''. When $n\gg a+b$ most of our information comes from the data instead of the prior. 
+Thus $a$ and $b$ can be interpreted here as ___prior data___ where $a$ is the number of `r myred("prior successes")` and $a+b$ is the `r myblue("prior sample size")`. When $n\gg a+b$ most of our information comes from the data instead of the prior. 
  
 
 -----------------
@@ -396,7 +396,7 @@ The numbers $\theta_{\alpha/2},\theta_{1- \alpha/2}$ are the $\alpha/2$ and  $1-
 Suppose out of $n=10$ conditionally independent draws of a binary random variable we observe $Y=2$ ones (successes).  
 
 `r sk2()`
-Using a uniform prior distribution (a.k.a., $\mathrm{Beta}(1,1)$) for $\theta$, the posterior distribution is $\theta | Y=2 ~ \mathrm{Beta}(1+2,1+10-2)$.  
+Using a uniform prior distribution (a.k.a., $\mathrm{Beta}(1,1)$) for $\theta$, the posterior distribution is $\theta | y=2 \sim \mathrm{Beta}(1+2,1+10-2)$.  
 
 `r sk2()`
 A 95 % CI can be obtained from the 0.025 and 0.975 quantiles of this beta distribution (e.g., using {\sf R}): 
