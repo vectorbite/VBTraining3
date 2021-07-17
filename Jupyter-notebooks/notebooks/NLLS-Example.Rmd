@@ -1,0 +1,391 @@
+---
+title: An R Markdown document converted from "../Jupyter-notebooks/notebooks/NLLS-Example.ipynb"
+output: html_document
+---
+
+# Bootstrapping using rTPC package
+
+## Introduction
+In this section we will work through an example of model fitting using the rTPC package in R.
+
+Lets start with the requirements!
+
+```{r}
+require('ggplot2')
+require('nls.multstart')
+require('broom')
+require('tidyverse')
+require('rTPC')
+require('data.table')
+require('car')
+require('boot')
+require('patchwork')
+require('minpack.lm')
+require("tidyr")
+require('purrr')
+
+rm(list=ls())
+graphics.off()
+```
+
+Now that we have the background requirements going, we can start using the rTPC package. Lets look through the different models available!
+
+```{r}
+#take a look at the different models available
+get_model_names()
+```
+
+There are 24 models to choose from. For our purposes in this section we will be using the sharpesschoolhigh_1981 model. More information on the model can be found [here](https://padpadpadpad.github.io/rTPC/reference/sharpeschoolhigh_1981.html).
+
+From here lets load in our data from the overall repository. This will be called `csm7I.csv`.
+
+This is from the larger dataset reduced to a single trait. This data comes from the [VectorBiTE database](https://legacy.vectorbyte.org/) and so has unique IDs. We will use this to get our species and trait of interest isolated from the larger dataset. In this example we will be looking at Development Rate across temperatures for Aedes albopictus, which we can find an example of in csm7I.
+
+```{r}
+df <- read.csv("../data/csm7I.csv")
+df1 <- df %>%
+  dplyr::select('originalid', 'originaltraitname', 'originaltraitunit', 'originaltraitvalue', 'interactor1', 'ambienttemp', 'citation')
+df2 <- as_tibble(df1)
+```
+
+Now lets visualize our data in ggplot.
+
+```{r}
+#visualize
+ggplot(df2, aes(ambienttemp, originaltraitvalue))+
+  geom_point()+
+  theme_bw(base_size = 12) +
+  labs(x = 'Temperature (ºC)',
+       y = 'Development Rate',
+       title = 'Development Rate across temperatures for Aedes albopictus')
+```
+
+We will need to write which model we are using (sharpschoolhigh_1981). From here we can actually build our fit. We will use ''nls_multstart'' to automatically find our starting values. This lets us skip the [starting value problem](https://mhasoba.github.io/TheMulQuaBio/notebooks/20-ModelFitting-NLLS.html#the-starting-values-problem). From here we build our predicted line.
+
+```{r}
+# choose model
+mod = 'sharpschoolhigh_1981'
+d<- df2 %>%
+  rename(temp = ambienttemp,
+         rate = originaltraitvalue)
+```
+
+```{r}
+# fit Sharpe-Schoolfield model
+d_fit <- nest(d, data = c(temp, rate)) %>%
+  mutate(sharpeschoolhigh = map(data, ~nls_multstart(rate~sharpeschoolhigh_1981(temp = temp, r_tref,e,eh,th, tref = 15),
+                                                     data = .x,
+                                                     iter = c(3,3,3,3),
+                                                     start_lower = get_start_vals(.x$temp, .x$rate, model_name = 'sharpeschoolhigh_1981') - 10,
+                                                     start_upper = get_start_vals(.x$temp, .x$rate, model_name = 'sharpeschoolhigh_1981') + 10,
+                                                     lower = get_lower_lims(.x$temp, .x$rate, model_name = 'sharpeschoolhigh_1981'),
+                                                     upper = get_upper_lims(.x$temp, .x$rate, model_name = 'sharpeschoolhigh_1981'),
+                                                     supp_errors = 'Y',
+                                                     convergence_count = FALSE)),
+         
+         # create new temperature data
+         new_data = map(data, ~tibble(temp = seq(min(.x$temp), max(.x$temp), length.out = 100))),
+         # predict over that data,
+         preds =  map2(sharpeschoolhigh, new_data, ~augment(.x, newdata = .y)))
+```
+
+```{r}
+# unnest predictions
+d_preds <- select(d_fit, preds) %>%
+  unnest(preds)
+```
+
+Lets visualize the line:
+
+```{r}
+# plot data and predictions
+ggplot() +
+  geom_line(aes(temp, .fitted), d_preds, col = 'blue') +
+  geom_point(aes(temp, rate), d, size = 2, alpha = 0.5) +
+  theme_bw(base_size = 12) +
+  labs(x = 'Temperature (ºC)',
+       y = 'Growth rate',
+       title = 'Growth rate across temperatures')
+```
+
+This looks like a good fit! We can start exploring using bootstrapping. Lets start with refitting the model using nlsLM.
+
+```{r}
+# refit model using nlsLM
+fit_nlsLM <- minpack.lm::nlsLM(rate~sharpeschoolhigh_1981(temp = temp, r_tref,e,eh,th, tref = 15),
+                               data = d,
+                               start = coef(d_fit$sharpeschoolhigh[[1]]),
+                               lower = get_lower_lims(d$temp, d$rate, model_name = 'sharpeschoolhigh_1981'),
+                               upper = get_upper_lims(d$temp, d$rate, model_name = 'sharpeschoolhigh_1981'),
+                               weights = rep(1, times = nrow(d)))
+```
+
+Now we can actually bootstrap.
+
+```{r}
+# bootstrap using case resampling
+boot1 <- Boot(fit_nlsLM, method = 'case')
+```
+
+It is a good idea to explore the data again now.
+
+```{r}
+# look at the data
+head(boot1$t)
+```
+
+```{r}
+hist(boot1, layout = c(2,2))
+```
+
+Now we use the bootstrapped model to build predictions which we can explore visually.
+
+```{r}
+# create predictions of each bootstrapped model
+boot1_preds <- boot1$t %>%
+  as.data.frame() %>%
+  drop_na() %>%
+  mutate(iter = 1:n()) %>%
+  group_by_all() %>%
+  do(data.frame(temp = seq(min(d$temp), max(d$temp), length.out = 100))) %>%
+  ungroup() %>%
+  mutate(pred = sharpeschoolhigh_1981(temp, r_tref, e, eh, th, tref = 15))
+```
+
+```{r}
+# calculate bootstrapped confidence intervals
+boot1_conf_preds <- group_by(boot1_preds, temp) %>%
+  summarise(conf_lower = quantile(pred, 0.025),
+            conf_upper = quantile(pred, 0.975)) %>%
+  ungroup()
+```
+
+```{r}
+# plot bootstrapped CIs
+p1 <- ggplot() +
+  geom_line(aes(temp, .fitted), d_preds, col = 'blue') +
+  geom_ribbon(aes(temp, ymin = conf_lower, ymax = conf_upper), boot1_conf_preds, fill = 'blue', alpha = 0.3) +
+  geom_point(aes(temp, rate), d, size = 2, alpha = 0.5) +
+  theme_bw(base_size = 12) +
+  labs(x = 'Temperature (ºC)',
+       y = 'Growth rate',
+       title = 'Growth rate across temperatures')
+
+# plot bootstrapped predictions
+p2 <- ggplot() +
+  geom_line(aes(temp, .fitted), d_preds, col = 'blue') +
+  geom_line(aes(temp, pred, group = iter), boot1_preds, col = 'blue', alpha = 0.007) +
+  geom_point(aes(temp, rate), d, size = 2, alpha = 0.5) +
+  theme_bw(base_size = 12) +
+  labs(x = 'Temperature (ºC)',
+       y = 'Growth rate',
+       title = 'Growth rate across temperatures')
+```
+
+```{r}
+p1 + p2
+```
+
+We can see here that when we bootstrap this data, the fit is not as good as we would expect from the initial exploration. We do not necessarily get a good thermal optima from this data with confidence intervals from this data.
+
+Lets look at a second example:
+
+# Example: Aedes aegypti Juvenile Mortality Rate
+
+Juvenile mortality rate and juvenile development rate are together the most important traits for population growth (rm). [Huxley et al. 2021](https://royalsocietypublishing.org/doi/full/10.1098/rspb.2020.3217?casa_token=eG00HSjUNDAAAAAA%3Ah2_CuvKoI8WFiBCT3J9bZ6PnkgN-jLnwZnmIbsNY_hSozTS54_4UhFzuSMKeO_xDySM57S3CuJZJwQ) shows and explains this through sensitivity analysis. [Cator et al (2020)](https://www.frontiersin.org/articles/10.3389/fevo.2020.00189/full) sensitivity analysis (numerical and analytical) of the Euler-Lotka model shows this also. Thermal optima is a good measure of these traits so lets find it for Aedes aegypti juvenile mortality.
+
+We will look at a select set of data from VectorBiTE prefiltered for this example: `juvenilemortalityrateae.csv`.
+
+Lets start by loading the dataset and getting set up.
+
+```{r}
+rm(list=ls())
+graphics.off()
+ae.ae <- read.csv('../data/juvenilemortalityrateae.csv')
+```
+
+We will need to manipulate this one a bit to get at the data we want.
+
+Lets boil it down to just Aedes aegypti with the clean data and specifically the juvenile mortality rate.
+
+```{r}
+ae.zj <- ae.ae %>% filter(standardisedtraitname == "Juvenile Mortality Rate")
+
+ae.zj <- ae.zj %>% dplyr::select(standardisedtraitvalue,temp)
+ae.zj <- ae.zj %>% rename(rate = standardisedtraitvalue)
+```
+
+Time to visualize!
+
+```{r}
+plot(ae.zj$temp, ae.zj$rate)
+```
+
+This doesn't look good. In order to fit the rTPC models to a mortality rate we will need to invert either the model or the data. It is easiest to invert the data so we will use the following code:
+
+```{r}
+ae.zj$rate <- 1/ae.zj$rate
+```
+
+```{r}
+plot(ae.zj$temp, ae.zj$rate)
+```
+
+This is better! We can fit a curve to this data and decide a thermal optima. We need to start with the start values.
+
+```{r}
+start_vals <- get_start_vals(ae.zj$temp, ae.zj$rate, model_name = 'pawar_2018')
+```
+
+Now we fit the model to the data.
+
+```{r}
+a_fits <- nest(ae.zj, data = c(temp, rate)) %>%
+  mutate(pawar = map(data, ~nls_multstart(rate~pawar_2018(temp = temp, r_tref,e,eh,topt, tref = 15),
+                                          data = .x,
+                                          iter = c(3,3,3,3),
+                                          start_lower = start_vals - 10,
+                                          start_upper = start_vals + 10,
+                                          supp_errors = 'Y',
+                                          convergence_count = FALSE)))
+```
+
+We'll need to build predictions:
+
+```{r}
+a_preds <- mutate(a_fits, new_data = map(data, ~tibble(temp = seq(min(.x$temp), max(.x$temp), length.out = 100))))%>% 
+  # get rid of original data column
+  select(., -data) %>%
+  # stack models into a single column, with an id column for model_name
+  pivot_longer(., names_to = 'model_name', values_to = 'fit', c(pawar)) %>%
+  # create new list column containing the predictions
+  # this uses both fit and new_data list columns
+  mutate(preds = map2(fit, new_data, ~augment(.x, newdata = .y))) %>%
+  # select only the columns we want to keep
+  select(model_name, preds) %>%
+  # unlist the preds list column
+  unnest(preds)
+```
+
+And plot those predictions to the data.
+
+```{r}
+ggplot(a_preds) +
+  geom_line(aes(temp, .fitted, col = model_name)) +
+  geom_point(aes(temp, rate),size=0.2,alpha=0.5, ae.zj)+
+  theme_bw() +
+  theme(legend.position = 'none') +
+  scale_color_brewer(type = 'qual', palette = 2) +
+  labs(x = 'Temperature (?C)',
+       y = 'rate',
+       title = 'Dev rate thermal performance curves')+
+  theme_bw(base_size = 10)+
+  theme(legend.position = "none")
+```
+
+Looking good! Now lets bootstrap it and get some confidence intervals (so we know we are doing real science).
+
+```{r}
+fit_nlsLM2 <- minpack.lm::nlsLM(rate~pawar_2018(temp = temp, r_tref,e,eh,topt, tref = 15),
+                                data = ae.zj,
+                                start = coef(a_fits$pawar[[1]]),
+                                weights = rep(1, times = nrow(ae.zj)))
+```
+
+```{r}
+# bootstrap using case resampling
+boot2 <- Boot(fit_nlsLM2, method = 'residual')
+
+boot2_preds <- boot2$t %>%
+  as.data.frame() %>%
+  drop_na() %>%
+  mutate(iter = 1:n()) %>%
+  group_by_all() %>%
+  do(data.frame(temp = seq(min(ae.zj$temp), max(ae.zj$temp), length.out = 100))) %>%
+  ungroup() %>%
+  mutate(pred = pawar_2018(temp, r_tref, e, eh, topt, tref = 15))
+```
+
+```{r}
+# calculate bootstrapped confidence intervals
+boot2_conf_preds <- group_by(boot2_preds, temp) %>%
+  summarise(conf_lower = quantile(pred, 0.025),
+            conf_upper = quantile(pred, 0.975)) %>%
+  ungroup()
+```
+
+```{r}
+# plot bootstrapped CIs
+
+ggplot() +
+  geom_line(aes(temp, .fitted), a_preds, col = 'blue') +
+  geom_ribbon(aes(temp, ymin = conf_lower, ymax = conf_upper), boot2_conf_preds, fill = 'blue', alpha = 0.3) +
+  geom_point(aes(temp, rate), ae.zj, size = 2, alpha = 0.5) +
+  theme_bw(base_size = 12) +
+  labs(x = 'Temperature (?C)',
+       y = '1/zj')
+```
+
+We can see on this plot, it looks like we will actually get an upper and lower confidence interval! If we eye the plot as it is we can see that the thermal optima will probably land around 15-16 degrees celcius but lets find it specifically.
+
+```{r}
+# calculate params with CIs
+
+extra_params2 <- calc_params(fit_nlsLM2) %>%
+  pivot_longer(everything(), names_to =  'param', values_to = 'estimate')
+```
+
+```{r}
+ci_extra_params2 <- Boot(fit_nlsLM2, f = function(x){unlist(calc_params(x))}, 
+                    labels = names(calc_params(fit_nlsLM2)), R = 200, method = 'residual') %>%
+  confint(., method = 'bca') %>%
+  as.data.frame() %>%
+  rename(conf_lower = 1, conf_upper = 2) %>%
+  rownames_to_column(., var = 'param') %>%
+  mutate(method = 'residual bootstrap')
+
+ci_extra_params2 <- left_join(ci_extra_params2, extra_params2)
+```
+
+It's okay to get a warning here the code is still working fine and we will get good findings.
+
+```{r}
+#- Topt 
+
+topt2 <- as_tibble(ci_extra_params2[2,])
+topt2$species <- as.character("Aedes aegypti")
+```
+
+Fingers crossed, lets look at our results!
+
+```{r}
+ggplot(topt2, aes(estimate, species)) +
+  geom_point(size = 4) + 
+  geom_linerange(aes(xmin = conf_lower, xmax = conf_upper)) +
+  theme_bw(base_size = 12) +
+  scale_x_continuous('') +
+  labs(title = 'calculation of Topt with CIs',
+       subtitle = 'dev rate TPC; using residual resampling')+
+  theme(axis.title.y = element_blank())
+```
+
+This looks good, we have confidence intervals and a specific optima! We can now do this for every species and every trait on the planet and call it quits for thermal optima modelling.
+
+Please see Daniel Padfields [git](https://padpadpadpad.github.io/rTPC/articles/rTPC.html) for more information on using the rTPC package.
+
+## Readings and Resources
+ 
+* Motulsky, Harvey, and Arthur Christopoulos. Fitting models to biological data using linear and nonlinear regression: a practical guide to curve fitting. OUP USA, 2004: <https://www.facm.ucl.ac.be/cooperation/Vietnam/WBI-Vietnam-October-2011/Modelling/RegressionBook.pdf>
+
+* These are a pretty good series of notes on NLLS (even if you are using R instead of Python): <https://lmfit.github.io/lmfit-py/intro.html>
+
+* Another technical description of NLLS  algorithms: <https://www.gnu.org/software/gsl/doc/html/nls.html>
+
+* Johnson, J. B. & Omland, K. S. 2004 Model selection in ecology and evolution. Trends Ecol. Evol. 19, 101–108.
+
+* The *nlstools* package for NLLS fit diagnostics: <https://rdrr.io/rforge/nlstools>
+    * The original paper: <http://dx.doi.org/10.18637/jss.v066.i05>
+
+# Practice Problem for NLLS
+## Select a focal species from ` nllsdataset.csv` data on trait-temperature relationships. Fit thermal performance curves to trait(s) of interest. Use bootstrapping to generate confidence bounds for each curve.
+
