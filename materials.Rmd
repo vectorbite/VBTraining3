@@ -53,7 +53,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Introduction to Linear Models
 
-- Lecture Slides, [Lecture Video 1](https://www.youtube.com/watch?v=oqjzfXDgZY0&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=2), [Lecture Video 2](https://www.youtube.com/watch?v=-VelMqc9z6M&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=1), Practical
+- [Lecture Slides](lectures/VB_LinMods.pdf), [Lecture Video 1](https://www.youtube.com/watch?v=oqjzfXDgZY0&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=2), [Lecture Video 2](https://www.youtube.com/watch?v=-VelMqc9z6M&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=1), Practical
 
 
 <br>
@@ -63,7 +63,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Nonlinear Modeling (including Thermal Performance Curves -- TPCs)
 
-- Lecture Slides, [Lecture Video](https://www.youtube.com/watch?v=dnZlU2_iQ1k&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=3), [Practical](activities/VB_NLLS_activity.html)
+- [Lecture Slides](lectures/VB_NLLS.pdf), [Lecture Video](https://www.youtube.com/watch?v=dnZlU2_iQ1k&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=3), [Practical](activities/VB_NLLS_activity.html)
 
 
 ### Simple Models for Temporal Data (based on Linear Models)
