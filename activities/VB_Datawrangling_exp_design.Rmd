@@ -1339,5 +1339,5 @@ After you have performed your data exploration, you are in a position to make an
 
 # Practice Problem for Data Wrangling
 
-## Organise (or wrangle!) the data, as you learned in the notebook. The dataset provided `wranglingdataset.csv` contains values on trait-temperature relationships. Select a focal species from this dataset. Use your species-specific subset to develop a hypothesis and explore it. Present your group's findings using descriptive statistics and visualizations.
+## Organise (or wrangle!) the data, as you learned in the lesson. The dataset provided `wranglingdataset.csv` contains values on trait-temperature relationships. Select a focal species from this dataset. Use your species-specific subset to develop a hypothesis and explore it. Present your group's findings using descriptive statistics and visualizations.
 
