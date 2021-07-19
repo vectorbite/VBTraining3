@@ -91,4 +91,4 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 
 ### Introduction to Bayesian State-Space models for Temporal Data
-- Here there be dragons
+- [Here there be dragons](https://www.youtube.com/watch?v=iik25wqIuFo)
