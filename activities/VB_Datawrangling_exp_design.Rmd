@@ -74,7 +74,7 @@ This is not an exhaustive list either&mdash; see the [Readings & Resources Secti
 
 ### An example
 
-We will use the Pound Hill dataset collected by students in a Silwood Field Course for understanding some of these  principles. This is not vectorbite data but it is an excellent example of a dataset that needs wrangling. VectorBiTE is too well strucutured for this sort of wrangling.
+We will use the Pound Hill dataset collected by students in a Silwood Field Course for understanding some of these  principles. This is not vectorbite data but it is an excellent example of a dataset that needs wrangling. VectorBiTE is too well structured for this sort of wrangling.
 
 To start with, we need to import the *raw* data file, for which, follow these steps:
 
