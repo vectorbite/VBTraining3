@@ -49,7 +49,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Data Wrangling in R
 
-- Self-Guided Activity/Practical
+- [Self-Guided Activity](activities/VB_Datawrangling_exp_design.html)
 
 ### Introduction to Linear Models
 
