@@ -33,7 +33,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 1. Go to [The Multilingual Quantitative Biologist](https://mhasoba.github.io/TheMulQuaBio/intro.html), and read+work through the [Biological Computing in R Chapter](https://mhasoba.github.io/TheMulQuaBio/notebooks/07-R.html) up to the section on Writing R code. Of course, keep going if you want (although we will cover some similar materials here).
 
-2. In addition / alternatively to pre-work element (1), here are some resources for brushing up on R at the end of the Intro R Chapter you can try. But there are many more resources online (e.g., this and this ) -- pick something that suits your learning style).
+2. In addition / alternatively to pre-work element (1), here are some resources for brushing up on R at the end of the Intro R Chapter you can try. But there are many more resources online (e.g., this and this ) -- pick something that suits your learning style.
 
 3. Review background on [introductory probability and statistics](activities/Stats_review.html) ([solutions to exercises](activities/Stats_review_soln.html)) 
 
