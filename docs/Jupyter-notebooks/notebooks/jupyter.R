@@ -131,3 +131,4 @@ ipynb_yaml <- function(meta, input) {
   if (length(authors) > 0) res[['author']] <- paste(authors, collapse = ', ')
   gsub('\n+$', '', yaml::as.yaml(res))
 }
+
