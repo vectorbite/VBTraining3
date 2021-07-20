@@ -1,10 +1,12 @@
 
 require('tidyverse')
-
+setwd("/home/primuser/Documents/VBTraining3/Jupyter-notebooks/")
+rm(list=ls())
+graphics.off()
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%%                  Data exploration with basic plotting 
 
-MyDF <- read.csv('traitdata_Huxleyetal_2021.csv',stringsAsFactors = TRUE)
+MyDF <- read.csv('data/traitdata_Huxleyetal_2021.csv',stringsAsFactors = TRUE)
 
 dim(MyDF) #check the size of the data frame you loaded
 str(MyDF)
