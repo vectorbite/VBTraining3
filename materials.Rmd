@@ -40,12 +40,11 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 4. Inculcate the coding Jedi inside of you - or the Sith - whatever works.
 
 
-
-# Beginner materials
-
-### Introduction to the VectorByte databases
+# Introduction to the VectorByte databases
 
 - This component will be delivered live & synchronously (with a recording to be uploaded later)
+
+# Beginner materials
 
 ### Data Wrangling in R
 
@@ -55,6 +54,9 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 - [Lecture Slides](lectures/VB_LinMods.pdf), [Lecture Video 1](https://www.youtube.com/watch?v=oqjzfXDgZY0&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=2), [Lecture Video 2](https://www.youtube.com/watch?v=-VelMqc9z6M&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=1), [Practical](activities/VB_Linear_models_activity.html)
 
+### Simple Models for Temporal Data (based on Linear Models)
+
+- [Lecture slides](lectures/VB_TS.pdf),  [Lecture video](https://www.youtube.com/watch?v=CIAoauEoTTo&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=5), [Practical](activities/VB_TimeSeries.html), [Airline "solution"](activities/VB_TS_exercise_soln.html) 
 
 <br>
 <br>
@@ -66,9 +68,6 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 - [Lecture Slides](lectures/VB_NLLS.pdf), [Lecture Video](https://www.youtube.com/watch?v=dnZlU2_iQ1k&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=3), [Practical](activities/VB_NLLS_activity.html)
 
 
-### Simple Models for Temporal Data (based on Linear Models)
-
-- [Lecture slides](lectures/VB_TS.pdf),  [Lecture video](https://www.youtube.com/watch?v=CIAoauEoTTo&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=5), [Practical](activities/VB_TimeSeries.html), [Airline "solution"](activities/VB_TS_exercise_soln.html) 
 
 
 ### Review of Likelihoods 
