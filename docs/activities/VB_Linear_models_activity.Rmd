@@ -1,0 +1,1149 @@
+---
+title: "Linear Models"
+author: "VectorBiTE Team"
+date: "Summer 2021"
+output:
+  html_document: default
+subtitle: 'Linear Models including: Regression, ANOVA, Multiple Explanatory Variables, Multiple Explanatory Variables with Interactions, and Model Simplification'
+graphics: yes
+---
+
+<!--NAVIGATION-->
+< | [Main Materials](https://vectorbite.github.io/VBTraining3/materials.html) | >
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Linear Models
+### Welcome to the VectorBiTE 2021 section on Linear Models
+This section will cover:
+* Regression
+* ANOVA
+* Multiple Explanatory Variables
+* Multiple Explanatory Variables with Interactions
+* Model Simplification
+
+
+# Linear Models: Regression
+
+## Introduction
+
+Linear Regression is a class of [Linear Models](https://en.wikipedia.org/wiki/Linear_model) that is frequently a good choice if both, your response (dependent) and your predictor (independent) variables are continuous. In this section you will learn:
+
+* To *explore* your data in order to determine whether a Linear Model is a good choice by
+    * Visualizing your data (in R)
+    * Calculating correlations between variables
+
+* To *fit* a Linear Regression Model to data
+
+* To determine whether the Model fits adequately your data (its "significance") by
+    * Plotting the data and the fitted Model together
+    * Calculating goodness of fit measures and statistics
+    * Using diagnostic plots
+
+It is expected that you have already been introduced to, or are familiar with the concepts (and/or theory) underlying Linear Models. If not, you may want to  watch the [video](https://drive.google.com/drive/folders/12Sj56wHX6vcAnp9GE9qQ1gIXbn7QRHU2?usp=sharing).
+
+We will use the genome size data. 
+
+So,
+
+$\star$ Open R and `setwd` to your `code` directory.
+
+$\star$ Create a new blank script called `Regression.R` and add some introductory comments.
+
+$\star$ Add code to your script to load the genome size data into R and check it (again, using the relative path prefix `../`, assuming that you working directory is `code`):
+
+```{r}
+genome <- read.csv('../data/GenomeSize.csv',stringsAsFactors = T) 
+
+head(genome)
+```
+
+Exploring the data
+------------------
+
+We can use `plot` to create a scatterplot between two variables. If you have a set of variables to explore, writing code for each plot is tiresome, so R provides a function `pairs`, which creates a grid of scatter plots between each pair of variables. This will make a plot off all the different combinations in your dataset to better explore the dataset. All it needs is a dataset.
+
+First, plot all pairs:
+
+```{r}
+library(repr); options(repr.plot.res = 100, repr.plot.width = 10, repr.plot.height = 10)
+```
+
+```{r}
+pairs(genome)
+```
+
+That's messy! There are too many columns that we are plotting against each other, so its hard to get a meaningful picture (literally). So let's try color-coding the scatterplot markers by suborder:  
+
+```{r}
+pairs(genome, col=genome$Suborder)
+```
+
+The result is still too messy! There are far too many variables in `genome` for this to be useful. Before we proceed further,
+
+$\star$ Add `pairs(genome, col=genome$Suborder)` into your script and run the code:
+
+So, we need to cut down the data to fewer variables. Previously (Experimental design section) we used indices to select colours; here, we can use indices to select columns from the data frame. This again uses square brackets (`x[]`), but a data frame has two dimensions, rows and columns, so you need to provide an index for each dimension, separated by commas. If an index is left blank, then all of that dimension (i.e. all rows or columns) are selected. Try the following to re-acquaint yourself to access data frame content using indices:
+
+```{r}
+library(repr); options(repr.plot.res = 100, repr.plot.width = 8, repr.plot.height = 8) # change plot size
+```
+
+```{r}
+# create a small data frame:
+dat <- data.frame(A = c("a", "b", "c", "d", "e"), B = c(1, 2, 3, 4, 5))
+dat[1, ] # select row 1 (all columns selected)
+```
+
+```{r}
+dat[, 2] # select column 2 (all rows selected)
+```
+
+```{r}
+dat[2, 1] # select row 2, column 1
+```
+
+Now let's get resume the actual analysis. We will look at five key variables: genome size, body weight, total length, forewing length and forewing area. If you look at the output of `str(genome)`, you'll see that these are in columns 4, 7, 8, 12 and 14. We can record the indices of these columns and use this to select the data in the pairs plot:
+
+```{r}
+morpho_vars <- c(4, 7, 8, 12, 14) # store the indices
+pairs(genome[, morpho_vars], col = genome$Suborder)
+```
+
+$\star$ Add the code above to your script and run it.
+
+In the figure above, each scatterplot is shown twice, with the variables swapping between the $x$ and $y$ axes. You can see immediately that the relationships between the four morphological measurements and genome size are fairly scattered but that the plots comparing morphology show much clearer relationships.
+
+## Correlations
+
+One way of summarising how strong the pair-wise relationships between these variables is to calculate a correlation coefficient. Pearson correlations look at the difference of each point from the mean of each variable (and since it uses means, it is a parametric statistic).
+
+It is calculated using the differences from the mean on each axis. The key calculation is — for each point – to get the product of the differences on each axis and add them up. If the points are mostly top left ($-x$, $y$) or bottom right ($x$, $-y$) then these products are mostly negative ($-xy$); if the points are mostly top right ($x$, $y$) or bottom left ($-x$, $-y$) then the products are mostly positive ($xy$).
+
+---
+
+<img src="../graphics/corr.png" alt="Pearson's Correlation Coefficient" width="800px">
+
+<small> <center> Illustration of what the Pearson correlation coefficient means.
+</center> </small>
+
+---
+
+The plots above show three clear cases where all the values of $xy$ are negative or positive or where both are present and sum to zero. The Pearson correlation coefficient simply scales these sums of $xy$ to be between -1 (perfectly negatively correlated) and 1 (perfectly positively correlated) via zero (no correlation). Specifically, this correlation coefficient ($r$) is equal to the average product of the standardized values of the two variables (let's call them $x$ and $y$):
+
+$$r_{xy}={\frac{\sum _{i=1}^{n}\left({\frac {x_{i}-{\bar {x}}}{s_{x}}}\right)\left({\frac {y_{i}-{\bar {y}}}{s_{y}}}\right)}{n-1}}$$
+
+where,
+
+* $n$ is sample size
+
+* $x_i, y_i$ are the individual sample points indexed with $i$ ($i = 1,2,\ldots, n$)
+
+*  $\bar{x} = \frac{\sum_{i=1}^n x_i}{n} $ is the the sample mean.
+
+* $ s_x = \sqrt{ {\frac{\sum_{i=1}^n(x_i - \bar{x})^2}{n-1}}}$ (sample standard deviation)
+
+* The quantities $\left({\frac {x_{i}-{\bar {x}}}{s_{x}}}\right)$ and $\left(\frac{y_i-\bar{y}}{s_y} \right)$ are the Z-scores (aka *standard scores*) of $x$ and $y$. This conversion of the raw scores ($x_i$'s and $y_i$'s) to Z-scores is called standardizing (or sometimes, normalizing).
+
+Thus the coefficient ($r_{xy}$) will be positive (negative) if the $x_i$ and $y_i$'s tend to move in the same (opposite) direction relative to their respective means (as illustrated in the figure above). 
+ 
+In R, we will use two functions to look at correlations. The first is `cor`, which can calculate correlations between pairs of variables, so is a good partner for `pairs` plots. The second is `cor.test`, which can only compare a single pair of variables, but uses a $t$ test to assess whether the correlation is significant.
+
+$\star$ Try the following (and include it in your R script file):
+
+```{r}
+cor(genome[, morpho_vars], use = "pairwise")
+```
+
+This is the correlation matrix. Then:
+
+```{r}
+cor.test(genome$GenomeSize, genome$TotalLength, use = "pairwise")
+```
+
+The `use='pairwise'` tells R to omit observations with missing data and use complete pairs of observations. The first function confirms our impressions from the graphs: the correlations between genome size and morphology are positive but comparatively weak and the correlations between morphological measurements are positive and very strong (i.e. close to 1). The correlation test tells us that genome size and body length are positively correlated (r=0.34, $t$ = 3.5507, df = 96, $p$ = 0.0006). 
+
+
+Also, in case you are wondering about what the t-value in the `cor.test` signifies:    
+
+The t-test is used within `cor.test` to establish if the correlation coefficient is significantly different from zero, that is, to test if there is a significant association between the two variables. The t-test, in general, can be used to test if the mean of a sample is significantly different from some reference value (1-sample t-test). Here, the "mean of the sample" is the observed correlation coefficient, and the reference value is 0 (the null hypothesis, that there is no association).
+
+## Transformations and allometric scaling
+
+There is one problem with the correlations above: *the correlation coefficient calculation assumes a straight line relationship*. Some of the scatterplots above are fairly straight but there are some strongly curved relationships. This is due to [allometric scaling](https://en.wikipedia.org/wiki/Allometry), where one body measure changes (or grows) disproportionately with respect to another. Here, two of the variables are in linear units (total and forewing length), one is in squared units (forewing area) and one in cubic units (body weight, which is approximately volume). That these measures are in different units itself guarantees that they will scale allometrically with respect to each other. 
+
+The relationships between these variables can be described using a power law: 
+
+$$y = ax^b$$
+
+Fortunately, if we log transform this equation, we get $\log(y) = \log(a) + b \log(x)$. This is the equation of a straight line ($y=a+bx$), so we should be able to make these plots straighter by logging both axes. We can create a new logged variable in the data frame like this:
+
+```{r}
+genome$logGS <- log(genome$GenomeSize)
+```
+
+$\star$ Using this command as a template, create a new logged version of the five
+variables listed above:
+
+```{r}
+genome$logGS <- log(genome$GenomeSize)
+genome$logBW <- log(genome$BodyWeight)
+genome$logTL <- log(genome$TotalLength)
+genome$logFL <- log(genome$ForewingLength)
+genome$logFA <- log(genome$ForewingArea)
+```
+
+$\star$ Then, using `str`, work out which column numbers the logged variables are and create a new variable called `logmorpho` containing these numbers:
+
+```{r}
+str(genome)
+```
+
+```{r}
+logmorpho <- c(17,18,19,20,21)
+```
+
+We can now use the `pairs` and `cor` test as before for the columns in `logmorpho`:
+
+```{r}
+pairs(genome[, logmorpho], col=genome$Suborder)
+```
+
+```{r}
+cor(genome[, logmorpho], use='pairwise')
+```
+
+The scatterplots show that logging the data has very successfully addressed curvature (non-linearity) due to allometric scaling between variables in the data.
+
+## Performing the Regression analysis
+
+We'll now look at fitting the first linear model of this course, to explore whether log genome size explains log body weight. The first thing to do is to plot the data:
+
+```{r}
+myColours <- c('red', 'blue') # Choose two colours
+mySymbols <- c(1,3) # And two different markers
+colnames(genome)
+```
+
+```{r}
+library(repr); options(repr.plot.res = 100, repr.plot.width = 6, repr.plot.height = 6) # change plot size
+```
+
+```{r}
+plot(logBW ~ GenomeSize , data = genome, #Now plot again
+col = myColours[Suborder], pch = mySymbols[Suborder],
+xlab='Genome size (pg)', ylab='log(Body weight) (mg)')
+
+legend("topleft", legend=levels(genome$Suborder), #Add legend at top left corner
+       col= myColours, pch = mySymbols)
+```
+
+It is clear that the two suborders have very different relationships: to begin with we will look at dragonflies (Anisoptera). We will calculate two linear models:
+
+* **The Null Model**:  This is the simplest linear model: nothing is going on and the response variable just has variation around the mean: $y = \beta_1$. This is written as an R formula as `y ~ 1`.
+
+* **The Linear (Regression) Model**: This models a straight line relationship between the response variable and a continuous explanatory variable: $y= \beta_1 + \beta_{2}x$.
+
+The code below fits these two models.
+
+```{r}
+nullModelDragon       <- lm(logBW ~ 1, data = genome, subset = Suborder ==  "Anisoptera")
+genomeSizeModelDragon <- lm(logBW ~ logGS, data = genome, subset =  Suborder == "Anisoptera")
+```
+
+* Note the long names for the models. Short names are easier to type but calling R objects names like `mod1`, `mod2`, ` xxx` swiftly get confusing!*
+
+$\star$ Add these model fitting commands into your script and run them.
+
+Now we want to look at the output of the model. Remember from the lecture that a model has *coefficients* (the $\beta$ values in the equation of the model) and *terms* which are the
+explanatory variables in the model. We'll look at the *coefficients* first:
+
+```{r}
+summary(genomeSizeModelDragon) 
+```
+
+There is a lot of information there: the model description ('`Call`'), a summary of the residuals, a table of coefficients and then information on residual standard error, r squared and an $F$ test.
+
+All of these will become clearer during this course (in particular, the meaning of Adjusted R-square will be explained in the ANOVA section — for the moment, concentrate on the coefficients table.
+
+There are two rows in the coefficient table, one for each coefficient in $y=\beta_1 + \beta_2x$ — these are the intercept and the slope of the line. The rest the details on each row are a $t$ test of whether the slope and intercept are significantly different from zero.
+
+The (least-squares) estimate of the slope coefficient (`logGS`) is equal to the correlation coefficient between the dependent variable ($y$, here `logBW`) and the independent variable ($x$, here `logGS`) times the ratio of the (sample) standard deviations of the two (see [above](#Correlations) for the definitions of these):
+
+$$ \text{Slope} = \beta_2 = r_{xy} \frac{s_y}{s_x}$$
+
+Thus you can see that the regression slope is proportional to the correlation coefficient; the ratio of standard deviations serves to scale the correlation coefficient (which is unit-less) appropriately to the actual units in which the variables are measured.  
+
+The (least-squares) estimate of the intercept is the mean of the dependent variable minus the estimated slope coefficient times the mean of the independent variable:
+
+$$ \text{Intercept} = \beta_1 = \bar{y} - \beta_2 \bar{x}  $$
+
+The standard error of the model ("Residual standard error" in the output above, also referred to as the standard error of the regression) is equal to the square root of the sum of the squared residuals divided by $n-2$. The sum of squared residuals is divided by $n-2$ in this calculation rather than $n-1$ because an additional degree of freedom for error has been used up by estimating two parameters (a slope and an intercept) rather than only one (the mean) in fitting the model to the data. 
+
+As you can see in the output above, each of the two model parameters, the slope and intercept, has its own standard error, and quantifies the uncertainty in these two estimates. These can be used to construct the Confidence Intervals around these estimates, which we will learn about later.  
+
+The main take-away from all this is that the standard errors of the coefficients are directly proportional to the standard error of the regression and inversely proportional to the square root of the sample size ($n$). Thus, that "noise" in the data (measured by the residual standard error) affects the errors in the coefficient estimates in exactly the same way. Thus, 4 times as much data will tend to reduce the standard errors of the all coefficients by approximately a factor of 2.
+
+Now we will look at the *terms* of the model using the `anova` function. We will have a proper look at ANOVA (Analysis of Variance) later. 
+
+Meanwhile, recall from your lecture that ANOVA tests how much variation in the response variable is explained by each explanatory variable. We only have one variable and so there is only one row in the output:
+
+```{r}
+anova(genomeSizeModelDragon)
+```
+
+This table is comparing the variation in log body weight explained by log genome size to the total variation in log body weight. We are interested in how much smaller the residuals are for the genome size model than the null model. Graphically, how much shorter are the red residuals than the blue residuals:
+
+
+
+---
+
+<img src="../graphics/regResid.png" width = "500px">
+
+<small><br> <center>Comparison of the null and the regression models.</center></small>
+
+---
+
+We can get the sums of the squares of these residuals from the two models using the function `resid`, and then square them and add them up:
+
+```{r}
+sum(resid(nullModelDragon) ^ 2)
+```
+
+```{r}
+sum(resid(genomeSizeModelDragon) ^ 2)
+```
+
+So we have five columns in the ANOVA table:
+
+* **`Df`**: This shows the degrees of freedom. Each fitted parameter/coefficient takes up a degree of freedom from the total sample size, and the left over are the residuals degree of freedom. In this case, genome size adds a slope (compare the null model $y=\beta_1$ and this model $y=\beta_1 + \beta_2x$ — there is one more $\beta$).
+
+* **`Sum Sq`**: This shows sums of squares. The bottom line is the residual sum of squares for the model and the one above is the variation explained by genome size. Using the two values from above, the sums of square residuals for the null model are 36.67. In the genome size model, the sum of square residuals are 28.14 and so $36.67-28.14=8.53$ units of variance have been explained by this model.
+
+* **`Mean Sq`**: These are just the Sum Sq (Sum of Squares) values divided by the degrees
+of freedom. The idea behind this is simple: if we explain lots of variation with one coefficient, that is good (the null model), and if we explain a small amount of variation with a loss of degree of freedom (by adding and then estimating more parameters), then that is bad.
+
+* **`F value`**: This is the ratio of the Mean Sq for the variable and the residual Mean
+Sq. This is used to test whether the explained variation is large or small.
+
+* **`Pr(>F)`**: This is the $p$ value — the probability of the x-variable (the fitted model) explaining this much variance by chance.
+
+In this case, it is clear that genome size explains a significant variation in body weight.
+
+$\star$ Include the `summary` and `anova` commands for `genomeSizeModelDragon` in your script, run them and check you are happy with the output.
+
+### Exercise 
+
+Using the above code as a template, create a new model called `genomeSizeModelDamsel` that fits log body weight as a function of log genome size for damselflies. Write and run code to get the `summary` and `anova` tables for this new model. For example, the first step would be:
+
+```{r}
+genomeSizeModelDamsel <- lm(logBW ~ logGS, data=genome,subset=Suborder=='Zygoptera')
+```
+
+### Plotting the fitted Regression model
+
+Now we can plot the data and add lines to show the models. For simple regression models, we can use the function `abline(modelName)` to add a line based on the model.
+
+$\star$ Create a scatterplot of log body weight as a function of log genome size, picking your favourite colours for the points.
+
+Use `abline` to add a line for each model and use the ` col` option in the function to colour each line to match the points. 
+
+For example: `abline(genomeSizeModelDragon, col='red')`.
+
+```{r}
+myCol <- c('red','blue')
+library(repr); options(repr.plot.res = 100, repr.plot.width = 8, repr.plot.height = 8) # change plot size
+plot(logBW ~ logGS, data=genome, col=myCol[Suborder], xlab='log Genome Size (pg)', ylab='log Body Weight (g)')
+
+abline(genomeSizeModelDragon, col='red')
+```
+
+Your final figure should look something like this:
+
+<img src="../graphics/GenoRegModels.png" width="300px">
+
+<small> <center> Linear regression models fitted to the body weight vs. genome size to the Dragonfly (red) and Damselfly (blue) subsets of the data.
+</center></small>
+
+## Model diagnostics
+
+Now that we have our models, we need to check that they are appropriate for the data. For this, we will inspect "diagnostic plots". Producing diagnostic plots is easy in R — if you `plot` the model object, then R produces a set of diagnostic plots!
+
+$\star$ Quick note on [par](https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/par): this is used to tell R where you want your plots when you build. 
+
+$\star$ Try the following code (and include in the R script file):
+
+```{r}
+par(mfrow = c(2, 2), mar = c(5, 5, 1.5, 1.5))
+plot(genomeSizeModelDragon)
+```
+
+These are the diagnostics for the `lm` fit to the Dragonfly data subset.
+
+Let's also plot the diagnostic pots for the model fitted to the Damselfly subset:    
+
+```{r}
+par(mfrow = c(2, 2), mar = c(5, 5, 1.5, 1.5))
+plot(genomeSizeModelDamsel)
+```
+
+The diagnostic plots are:
+
+* **Residuals vs Fitted**: This plot is used to spot if the distribution of the residuals (the vertical distance from a point to the regression line) has *similar variance* for different predicted values (the y-value on the line corresponding to each x-value). There should be no obvious patterns (such as curves) or big gaps. If there was no scatter, if all the points fell exactly on the line, then all of the dots on this plot would lie on the gray horizontal dashed line. The red line is a smoothed curve to make it easier to see trends in the residuals. It is flat in the Dragonfly model fit above, and a bit more wavy than we would like in the in the Damselfly model fit, but there are no clear trends in either, which is what you hope to see.
+
+* **Normal Q–Q**: This plot is to check whether the residuals are *normally distributed* — are the values of the observed residuals similar to those expected under a normal distribution? Ideally, the points should form a perfectly straight line, indicating that the observed residuals exactly match the expected. Here, note that the points lie pretty close to the dashed line in both sets of diagnostic Figures above, but deviate at the ends, especially for Damselflies. However, some deviation is to be expected near the ends — here these deviations are just about acceptable.
+
+* **Scale–Location**: The x-axis on this plot is identical to the Residuals vs Fitted plot – these are the fitted values. The y-axis is the square root of the *standardized residuals*, which are residuals rescaled so that they have a mean of zero and a variance of one. As a result, all y-axis values are positive. Thus large residuals (both positive and negative) plot at the top, and small residuals plot at the bottom (so only their *scale* is retained). Thus, all of the numbered points (which will be the same in all plots) plot at the top here. The red line here shows the trend, just like the Residuals vs Fitted plot. The regression analysis has assumed homoscedasticity, that the variance in the residuals doesn't change as a function of the predictor. If that assumption is correct, the red line should be relatively flat. It is not quite as flat as we would like, especially for the Dragonfly analysis.
+
+* **Residuals vs Leverage**: This plot shows the standardized residuals against leverage. "Leverage" is a measure of how much each data point influences the linear model's coefficient estimates. Because the regression line must pass through the centroid ("pivot point") of the data, points that lie far from the centroid have greater leverage, and their leverage increases if there are fewer points nearby. Here is an illustration:
+
+---
+
+<img src="../graphics/Leverage.png" width = "250px">
+
+<small> <center> Leverage of data points on slope of a regression. The points further away from the centroid in the x-axis direction have more leverage, and
+can therefore move the regression line up or down (dashed red lines)
+</center> </small>
+
+There are two key things to note about this plot:
+
+1. The standardized residuals (y-axis) are centered around zero and reach 2-3 standard deviations away from zero. They should also lie symmetrically about zero, as would be expected for a normal distribution. This is the case for the Damselfly plot , but not so much for the Dragonfly plot.
+
+2. The contours values show *Cook's distance* (only visible in the Damsefly plot), which measures how much the regression would change if a point was deleted. Cook's distance is increased by leverage and by large residuals: a point far from the centroid with a large residual can severely distort the coefficient estimates from the regression. On this plot, you want to see that the red smoothed line stays close to the horizontal gray dashed line and that no points have a large Cook's distance (i.e, &gt;0.5). Both are true here.
+
+This is an important diagnostic plot in regression analyses in particular because it tells you whether your estimate of the slope coefficient in particular is strongly affected by certain data points.
+
+Note that certain points are numbered in all the diagnostic plots — these are points to pay special attention to because they are *potential* outliers. The numbers correspond to the row number for that dataset in your data frame. You can easily identify these points in your data plot because the order of the points along the fitted values axis (y-axis) in the diagnostic plot matches the order along the x-axis in the data plot. So, for example here, in the dragonfly diagnostic plots the two numbered points (46, 10) near the bottom correspond in the data plot to the two red points near the center-left that lie farthest below the red line (see the plot with regression lines fitted to the data).
+
+Thus, neither the Drangonfly nor the Damselfly diagnostic plots look perfect, but this level of deviation from assumptions of linear models is acceptable. The main worrying factors are that the Q-Q plot for Damselflies indicates the observed residuals are a bit more extreme than expected, and the Scale–Location plot for Dragonflies suggests some pattern in the standardized residuals wrt location of the fitted values.
+
+$\star$ Copy the code to create the diagnostic plots into your script to keep a
+record of the code and run it.
+
+## Reporting the model
+
+Now we know that the models are appropriate and we have a plot, the last thing is to report the statistics. For the damselfly model, here is one summary that would do: log genome size explains significant variation in log body weight in dameselflies (F=10.5, df=1,36, p=0.0025) and shows that body weight decreases with genome size (intercept: -4.65, se=0.09;
+slope: -1.14, se=0.35).
+
+# Linear Models: Analysis of variance
+
+## Introduction
+
+Analysis of Variance, is very often a good choice if your response (dependent) variable is continuous, and your  predictor (independent) variables is categorical. 
+
+In this section, you will learn to perform an ANOVA, that is, fit this linear model to the data. Specifically, you will learn to[$^{[1]}$](#fn1):
+
+* Visualize the data by plotting boxplots and barplots
+
+* Fit an ANOVA to test whether certain factors can explain (partition) the variation in your data
+
+* Perform diagnostics to determine whether the factors are explanatory, and whether the Linear Model is appropriate for your data
+
+* Explore and compare how much the different levels of a factor explain the variation in your data 
+
+
+## What is ANOVA?
+
+<u>An</u>alysis  <u>O</u>f  <u>Va</u>riance (ANOVA) is an extremely useful class of Linear models. It is very often appropriate when your response (dependent) variable is continuous, while your predictor (independent) variable is categorical. Specifically, *One-way ANOVA* is used to compare means of two or more samples representing numerical, continuous data in response to a single categorical variable (factor).
+
+<img src="../graphics/ANOVA_is_LM.png" alt="ANOVA example" width="300px">
+
+<small><center>A dataset where an ANOVA is appropriate.
+     <br>
+Performing an ANOVA on this dataset is the same as fitting the linear model $y  = \beta_1  + \beta_2 x_s + \beta_3 x_a$, where $x_s$ and $x_a$ are two levels ("treatments", representing statistically separate populations) within the factor (games console ownership). Here, the first treatment, the control, is captured by the baseline value $\beta_1$ (the sample with the lowest value, on the far left).
+</center> </small>
+
+(One-way) ANOVA tests the null hypothesis that samples from two or more groups (the treatments or factors) are drawn from populations with the *same mean value*. That is, the null hypothesis is that all the groups are random samples from the *same* population (no statistical difference in their means). To do this, ANOVA compares the variance in the data explained by fitting the linear model, to the unexplained variance (the null hypothesis. 
+
+In other words, in effect, ANOVA asks whether a linear model with a predictor (or explanatory variable) with at least two categorical levels (or factors), better accounts for the variance (Explained Sum of Squares, ESS, see below) than a null model of the form $y  = \beta_1$. Thus, ANOVA is just a type of linear model.
+
+By the end of this section, it will also make more sense to you how/why fitting a linear regression model to the data of the form $y = \beta_1  + \beta_2 x$ (where $x$ is a continuous predictor variable), requires an ANOVA to determine if the model better fits than a null model of the form $y  = \beta_1$.
+
+Typically, one-way ANOVA is used to test for differences among at least three groups, since the two-group (or levels or factors) case can be covered by a $t$-test. When there are only two means to compare, the $t$-test and the F-test are equivalent; the relation between ANOVA and t is given by $F = t^2$.
+
+An extension of one-way ANOVA is two-way analysis of variance that examines the influence of two different categorical independent variables on one dependent variable. We will explore multiple predictors in later segments.
+
+
+## Calculating the ANOVA test statistic
+
+ANOVA uses the [F-Statistic](https://blog.minitab.com/en/adventures-in-statistics-2/understanding-analysis-of-variance-anova-and-the-f-test#:~:text=The%20F%2Dstatistic%20is%20the,F%2Dstatistic%20of%20approximately%201.&text=In%20order%20to%20reject%20the,need%20a%20high%20F%2Dvalue.). To this end, an ANOVA "partitions" variability in your data as follows:
+
+**Total sum of squares (TSS)**: This is the sum of the squared difference between the observed dependent variable ($y$) and the mean of the response variable $y$ (denoted by $\bar{y}$), i.e.,
+
+$$\text{TSS} = \sum_{i=1}^{n}(y_i - \bar{y})^2$$
+
+TSS tells us how much variation there is in the dependent variable without having any other information (your null model). You might notice that TSS is the numerator of the *sample variance* (or it's square-root, the *sample standard deviation*).
+
+
+**Explained sum of squares (ESS)**: Sum of the squared differences between the predicted $y$'s (denoted $\hat{y}$'s) and $\bar{y}$, or,
+$$\text{ESS} = \sum_{i=1}^{n} (\hat{y}_i - \bar{y})^2$$ 
+ESS tells us how much of the variation in the dependent variable our alternative (linear) model was able to explain. That is, it's the reduction in uncertainty that occurs when the linear model is used to predict the responses.
+
+
+**Residual sum of squares (RSS)**: Sum of the squared differences between the observed $y$'s (denoted by $y_i$) and the predicted $\hat{y}$, or,
+$$\text{RSS} = \sum_{i=1}^{n} (\hat{y}_i - y_i)^2$$ 
+RSS tells us how much of the variation in the dependent variable our model could not explain. That is, it's the uncertainty that remains even after the linear model is used. The linear model is considered to be statistically significant if it can account for a large amount of variability in the response.
+
+* And of course, TSS = ESS + RSS. That is, the OLS method "decomposes" the total variation in the dependent variable into an explained component (ESS; explained by the predictor) and an unexplained or residual component (the RSS).
+
+The sums of squares used to calculate the statistical significance of the linear model (Regression, ANOVA, etc) through the F value are as follows:
+
+|Type of Sum of Squares (SS)| SS Calculation | Degrees of Freedom (DF)|Mean Sum of Squares (MSS) | 
+|:------|:------:|:------:|:------:|
+|TSS | $\sum_{i=1}^{n}(y_i - \bar{y})^2$ | $n-1$ | $\frac{TSS}{n-1}$ |
+|ESS | $\sum_{i=1}^{n} (\hat{y}_i - \bar{y})^2$ | $n_c-1$ | $\frac{ESS}{n_c-1}$ |
+|RSS | $\sum_{i=1}^{n} (\hat{y}_i - y_i)^2$ | $n-n_c$ |$\frac{RSS}{n-n_c}$ |
+
+Let's try to make sense of these calculations. Firstly, because we are dealing with samples understanding the degrees of freedom is critical. 
+
+### Degrees of freedom
+
+Each sum of squares has a corresponding degrees of freedom (DF) associated with it that gives the Mean Sum of Squares (MSS) — the Sums of Squares divided by the corresponding degrees of freedom.
+
+* The TSS DF is one less than the number of observations $n-1$. This is because calculating TSS, needs $\bar y$ , which imposes loss of one degree of freedom. Note that MSS is thus nothing but the sample variance.
+
+* The ESS DF is one less than the number of coefficients ($n_c$) (estimated parameters) in the model: $n_c-1$. Note that in the case where the linear model is an ANOVA, the number of coefficients equals the number of "treatments" (the categories or levels in the predictor or factor). So for example, in [Figure 1](#fig:anova1), there are three treatments (predictors) and therefore three coefficients ($\beta_1$, $\beta_2$, $\beta_3$), which means that the ESS degrees of freedom there is $n_c-1 = 2$.
+
+* The RSS DF is the sample size $n$ minus the number of coefficients that you need to estimate ($n_c$), that is, $n - n_c$, because each estimated coefficient is an unknown parameter. 
+
+### The F-Value (or Ratio)
+
+The F-Value or F-Ratio, the test statistic used to decide whether the linear model fit is statistically significant, is the ratio of the Mean ESS to the Mean RSS: 
+
+$$
+F = \frac{\left(\frac{ESS}{n_c-1}\right)}{\left(\frac{RSS}{n-n_c}\right)}
+$$
+
+If the null hypothesis that the group means are drawn from sub-populations with the *same* mean were indeed true, the between-group variance (numerator in this F-ratio) should be lower than the within-group variance (denominator). The null hypothesis is rejected if this F-Ratio is large — the model explains a significant amount of variance, and we can conclude that the samples were drawn from populations with different mean values.
+
+The p-value is calculated for the overall model fit using the F-distribution.
+
+Also note that the Root Mean Square Error (RMSE), also known as the standard error of the estimate, is the square root of the Mean RSS. It is the standard deviation of the data about the Linear model, rather than about the sample mean.
+
+### The $R^{2}$
+
+The $R^{2}$, also called the Coefficient of Determination, is the proportion of total error (TSS) explained by the model (ESS), so the ratio ESS/TSS. That is it is the proportion of the variability in the response that is explained by the fitted model. Since TSS = ESS + RSS, $R^{2}$ can be rewritten as (TSS-RSS)/TSS = 1 - RSS/TSS. If a model perfectly fits the data, $R^{2}=1$, and if it has no predictive capability $R^{2}=0$. In reality, $R^{2}$ will never be exactly 0 because even a null model will explain some variance just by chance due to sampling error. Note that $R$, the square root of $R^2$, is the multiple correlation coefficient: the correlation between the observed values ($y$), and the predicted values ($\hat{y}$).
+
+#### Adjusted $R^{2}$
+
+As additional predictors (and therefore linear model coefficients) are added to a linear model, $R^2$ increases even when the new predictors add no real predictive capability. The adjusted-$R^2$ tries to address this problem of over-specification or over-fitting by including the degrees of freedom: Adjusted $R^2$ = 1 - (RSS/$n-n_c-2$)/(TSS/$n-1$)
+[$^{[2]}$](#fn2). 
+
+Thus, additional predictors with little explanatory capability will increase the ESS (and reduce the RSS), but they will also have lower RSS degrees of freedom (because of the additional number of fitted coefficients, $n_c$'s)[$^{[3]}$](#fn3). Thus if the additional predictors have poor predictive capability, these two reductions will cancel each other out. In other words, the Adjusted $R^2$ penalizes the addition of new predictors to the linear model, so you should always have a look at the Adjusted $R^2$ as a corrected measure of $R^2$.
+
+## An example ANOVA 
+
+In this section, we will use a dataset from a recent paper on the effects of temperature and larval resource supply on *Aedes aegypti* life history traits and the vector's maximal population growth rate (__[Huxley *et al*. 2021](https://royalsocietypublishing.org/doi/10.1098/rspb.2020.3217)__). 
+
+### The data
+
+$\star$ Download the file `traitdata_Huxleyetal_2021.csv` and save to your `Data` directory.
+
+$\star$ Create a new blank script called `ANOVA_Prac.R` and add some introductory comments.
+
+$\star$ Use `read.csv` to load the data in the data frame `mozwing` and then `str` and `summary` to examine the data:
+
+```{r}
+require('tidyverse')
+require('gplots')
+require('repr')
+
+rm(list=ls())
+graphics.off()
+```
+
+```{r}
+mozwing      <- read.csv('../data/traitdata_Huxleyetal_2021.csv', stringsAsFactors = T)
+mozwing$temp <- as_factor(mozwing$temp) # define temperature and food level as categorical
+mozwing$food_level <- as_factor(mozwing$food_level) 
+```
+
+```{r}
+str(mozwing)
+```
+
+There are 33 variables but only a subset of these are of interest to us here. Let's summarize the data to explore further: 
+
+```{r}
+summary(mozwing)
+```
+
+You will see from the output of `summary` that there are data on several vector traits, such as juvenile development, adult longevity and wing length.
+
+### Exploring the data with boxplots
+
+The body size of arthropod vectors is expected to have an important effect on vector-borne disease transmission risk, because it is associated with traits, such as longevity and biting rate. In organisms with complex life histories, including mosquitoes, adult size is strongly affected by larval rearing conditions. 
+
+Here, we are interested in finding out whether wing length varies predictably across temperatures (a typical one-way ANOVA question).
+
+* Before we fit any models, we want to plot the data to see if the means within these groupings look different. We also want to check whether the variance looks similar for each group: *constant normal variance*! A simple way is to look at box and whisker plots, showing the median and range of the data:
+
+$\star$ Generate a boxplot of the differences in wing length between temperatures:
+
+```{r}
+plot(length_mm ~ temp, mozwing)
+```
+
+Looking at the plots, it is clear that there is more spread in the data below the median than above. Create a new variable `logwinglength` in the `mozwing` data frame containing logged millimeter values.
+
+$\star$ Now create a boxplot of log wing length values within temperatures:
+
+```{r}
+mozwing$loglength <- log(mozwing$length_mm)
+```
+
+### Differences in means with barplots
+
+Box and whisker plots show the median and spread in the data very clearly, but we want to test whether the means are different. This is $t$ test territory — how different are the means given the standard error — so it is common to use barplots and standard error bars to show these differences.
+
+We're going to use some R code to construct a barplot by hand. We need to calculate the means and standard errors within temperature groups, but before we can do that, we need a new functions to calculate the standard error of a mean:
+
+```{r}
+seMean <- function(x){ # get standard error of the mean from a set of values (x)
+    x  <- na.omit(x) # get rid of missing values
+
+    se <- sqrt(var(x)/length(x)) # calculate the standard error
+
+    return(se)  # tell the function to return the standard error
+}
+```
+
+Now we can use the function `tapply`: it splits a variable up into groups from a factor and calculates statistics on each group using a function.
+
+```{r}
+lengthMeans <- tapply(mozwing$loglength, mozwing$temp, FUN = mean, na.rm = TRUE)
+
+print(lengthMeans)
+```
+
+And similarly, let's calculate the standard error of the mean using the function we made:   
+
+```{r}
+lengthSE <- tapply(mozwing$loglength, mozwing$temp, FUN = seMean)
+
+print(lengthSE)
+```
+
+Now we have to put these values together on the plot:
+
+```{r}
+# get the upper and lower limits of the error bars
+upperSE <- lengthMeans + lengthSE
+lowerSE <- lengthMeans - lengthSE
+
+# get a barplot
+# - this function can report where the middle of the bars are on the x-axis
+# - set the y axis limits to contain the error bars
+
+barMids <- barplot(lengthMeans, ylim=c(0, max(upperSE)), ylab = 'ln(wing length, mm)')
+
+# Now use the function to add error bars
+# - draws arrows between the points (x0,y0) and (x1,y1)
+# - arrow heads at each end (code=3) and at 90 degree angles
+
+arrows(barMids, upperSE, barMids, lowerSE, ang=90, code=3)
+```
+
+Now we need to draw all these pieces together into a script and get used to using them.
+
+$\star$ Add all the lines of code from this section into your script. Run it and check you get the graph above.
+
+$\star$ Use the second two chunks as a model to plot a similar graph for food level 
+
+---
+
+```{r}
+seMeanfood <- function(x){ # get standard error of the mean from a set of values (x)
+         x <- na.omit(x) # get rid of missing values
+        
+         se <- sqrt(var(x)/length(x)) # calculate the standard error
+        
+        return(se)  # tell the function to return the standard error
+}
+```
+
+```{r}
+lengthMeansfood <- tapply(mozwing$loglength, mozwing$food_level, FUN = mean, na.rm = TRUE)
+
+print(lengthMeansfood)
+```
+
+```{r}
+lengthSEfood <- tapply(mozwing$loglength, mozwing$food_level, FUN = seMeanfood)
+
+print(lengthSEfood)
+```
+
+Lets get the upper and lower limits of the error bars:
+
+```{r}
+upperSEfood <- lengthMeansfood + lengthSEfood
+lowerSEfood <- lengthMeansfood - lengthSEfood
+```
+
+Now we should build a barplot
+ - this function can report where the middle of the bars are on the x-axis
+ - set the y axis limits to contain the error bars
+
+```{r}
+barMidsfood <- barplot(lengthMeansfood, ylim=c(0, max(upperSE)), ylab = 'ln(wing length, mm)')
+```
+
+Now use the function to add error bars
+- draws arrows between the points (x0,y0) and (x1,y1)
+- arrow heads at each end (code=3) and at 90 degree angles
+
+```{r}
+barMidsfood <- barplot(lengthMeansfood, ylim=c(0, max(upperSE)), ylab = 'ln(wing length, mm)')
+arrows(barMidsfood, upperSEfood, barMidsfood, lowerSEfood, ang=90, code=3)
+```
+
+### An alternative to barplots
+
+That is a lot of work to go through for a plot. Doing it the hard way uses some useful tricks, but one strength of R is that there is a huge list of add-on packages that you can use to get new functions that other people have written.
+
+We will use the `gplots` package to create plots of group means and confidence intervals. Rather than plotting the means $\pm$ 1 standard error, the option `p=0.95` uses the standard error and the number of data points to get 95% confidence intervals. The default `connect=TRUE` option adds a line connecting the means, which isn't useful here.
+
+$\star$ Replicate the code below into your script and run it to get the plots below.
+
+```{r}
+#Load the gplots package
+library(gplots)
+
+# Get plots of group means and standard errors
+par(mfrow=c(1,2))
+plotmeans(loglength ~ temp, data=mozwing, p=0.95, connect=FALSE)
+plotmeans(loglength ~ food_level, data=mozwing, p=0.95, connect=FALSE)
+```
+
+## Analysis of variance
+
+
+Hopefully, those plots should convince you that there are differences in wing length across temperatures and food levels. We'll now use a linear model to test whether those differences are significant.
+
+$\star$ Using your code from the regression section as a guide, create a linear
+model called `lengthLM` which models wing length as a function of temperature.
+
+Use `anova` and `summary` to look at the analysis of variance table and then the coefficients of the model.
+
+The ANOVA table for the model should look like the one below: temperature explains highly significant variation in wing length($F= 30.5, \textrm{df}=2 \textrm{ and } 146, p =8.45e-12$)
+
+```{r}
+lengthLM <- lm(loglength ~ temp, data=mozwing)
+```
+
+```{r}
+anova(lengthLM)
+```
+
+
+*Note the style of reporting the result* - the statistic ($F$), degrees of freedom and $p$ value are all provided in support. 
+
+Pay close attention to the sum of squares column. This model is good, but some will not be. The important ratio is called $r^2$, a measure of explanatory power, and shows that, although a model can be very significant, it might not be very explanatory. We care about explanatory power
+or effect size, `*not*` $p$ values.
+
+The coefficients table for the model looks like this:
+
+```{r}
+summary(lengthLM)
+```
+
+It shows the following:
+
+* The reference level (or intercept) is for 22$^\circ$C. The summary output indicates that wing length at this temperature is significantly different from zero - this is *not* an exciting finding!
+
+```{r}
+TukeyLength <- TukeyHSD(aov(lengthLM))
+print(TukeyLength)
+```
+
+The table shows the following:
+
+* The differences between the three possible pairs and then the lower and
+upper bounds of the 95% confidence interval for the difference and a $p$
+value.
+
+* In each case, we want to know if the difference could be zero: does the
+95% confidence interval for each pair include zero?
+
+* For all pairs, the confidence intervals do not include zero, so they are significantly different. For example, comparison between 32 and 22$^\circ$C, the interval does include zero (difference = -0.16, 95% CI's limits are -0.21 & -0.11), so these groups are significantly different.
+
+* The $p$ values for the top pairs are broadly consistent with the summary table. However, it may be harder to find significant results with a Tukey test in other cases.
+
+You can visualise these confidence intervals by plotting the Tukey test. You have to tweak the graphics parameters to get a clean plot though.
+
+```{r}
+options(repr.plot.res = 100, repr.plot.width = 10, repr.plot.height = 10)
+```
+
+```{r}
+par(mfrow=c(1,1))
+par(las=1, mar=c(5,5,5,5))
+# las= 1 turns labels horizontal
+# mar makes the left margin wider (bottom, left, top, right)
+plot(TukeyLength)
+```
+
+$\star$ Include the Tukey test in your script for both the temperature and food models.
+
+### Are the factors independent?
+
+We've looked at two models, using temperature and food level. It is worth asking whether these are independent factors? This is important to know because otherwise, a two-way ANOVA would not be appropriate. We will look at interactions later.
+
+OK, so we want to know whether the two factors are independent. This is a job for the $\chi^2$ test!
+
+## The Chi-square test and count data
+
+The Chi-square test, also known as $\chi^{2}$ test or chi-square test, is designed for scenarios where you want to statistically test how likely it is that an observed distribution of values is due to chance. It is also called a "goodness of fit" statistic, because it measures how well the observed distribution of data fits with the distribution that is expected if the variables of which measurements are made are independent. In our wing length example below, the two variables are temperature and food level.
+
+Note that a $\chi^{2}$ test is designed to analyze categorical data. That is the data have been counted (count data) and divided into categories. It is not meant for continuous data (such as body weight, genome size, or height). For example, if you want to test whether
+attending class influences how students perform on an exam, using test scores (from 0-100) as data would not be appropriate for a Chi-square test. However, arranging students into the categories "Pass" and "Fail" and counting up how many fall in each categories would be appropriate. Additionally, the data in a Chi-square table (see below) should not be in the form of percentages – only count data are allowed!
+
+### The Chi-square test with the wing length data
+
+We can easily build a table for a Chi-square test on the wing length data as follows:
+
+```{r}
+mozwing <- mozwing[!is.na(mozwing$loglength),] # subset data to omit cells for individuals that did not survive to adulthood
+
+factorTable <- table(mozwing$food_level,mozwing$temp)
+print(factorTable)
+```
+
+Now let's run the test:
+
+```{r}
+chisq.test(factorTable)
+```
+
+The "X-squared" value is the $\chi^{2}$ *test
+statistic*, akin to the t-value of the t-test or W value in the
+Wilcox test.
+
+The $\chi^{2}$ statistic is calculated as the sum of the quantity
+
+$$\frac{(\mathrm{Observed} - \mathrm{Expected})^2}{\mathrm{Expected}}$$
+
+across all the cells/categories in the table (so the sum would be over 6 categories in our current wing length example).
+
+"Observed" is the observed proportion of data that fall in a certain category. For example, at 22oC there are 23 individuals observed in the `food level`, `0.1` category, and 35 in the `food level`, `1` category.
+
+"Expected" is what count would be expected if the values in each category were truly independent. Each cell has its own expected value, which is simply calculated as the count one would expect in each category if the value were generated in proportion to the total number seen in that category. So in our example, the expected value for the `food level`, `0.1` category would be 
+
+$23+35 \mathrm{~(Total~number~of~low~food~individuals)} \times \frac{23+29+10 \mathrm{~(Total~number~in~the~"0.1"~category)}}{23+35+29+28+10+24 \mathrm{~(Total~number~of~individuals)}} = 58 \times \frac{62}{87} = 17.19$
+
+The sum of all six (one for each cell in the table above) such calculations would be the $\chi^{2}$ value that R gave you through the `chisq.test()` above — try it!
+
+Now back to the R output from the `chisq.test()` above. Why df = 2? This is calculated as $DF = (r - 1) * (c - 1)$ where $r$ and $c$ are the number of rows and columns in the $\chi^{2}$ table, respectively. The same principle you learned before applies here; you lose one degree of freedom for each new level of information you need to estimate: there is uncertainity about the information (number of categories) in both rows and columns, so you need to lose one degree of freedom for each.
+
+Finally, note that the p-value is non-significant — we can conclude that the
+factors are independent. This is expected because individuals could only be exposed to one of the six temperature-food treatments in the study's experimental design. This dataset only contains females, however, the `chisq.test()` would be even more useful if the dataset contained values on both sexes. Later, we analyse these data using "interactions" later in multiple explanatory variables.
+
+$\star$ Include and run the $\chi^2$ test in your script.
+
+## Saving data
+
+The last thing to do is to save a copy of the wing length data, including our
+new column of log data.
+
+$\star$ Use this code in your script to create the saved data in your `Data` directory :
+
+```{r}
+save(mozwing, file='mozwing.Rdata')
+```
+
+# Linear Models: Multiple explanatory variables
+
+## Introduction
+
+In this section we will explore fitting a linear model to data when you have multiple explanatory (predictor) variables. 
+
+The aims of this section are[$^{[1]}$](#fn1):
+
+* Learning to build and fit a linear model that includes several explanatory variables
+
+* Learning to interpret the summary tables and diagnostics after fitting a linear model with multiple explanatory variables
+
+## An example
+
+We will now look at a single model that includes both explanatory variables.
+
+The first thing to do is look at the data again. 
+
+### Exploring the data
+
+$\star$ Create a new blank script called `MulExpl.R` in your `Code` directory and add some introductory comments.
+
+```{r}
+wings <- read.csv("../data/traitdata_Huxleyetal_2021.csv")
+```
+
+Look back at the end of the previous section to see how you saved the RData file. If `loglength` is missing, just add it to the imported data frame again (go back to the ANOVA section and have a look if you have forgotten how). Also, check to see if `temp` and `food_level` are defined as factors.
+
+Use `ls()`, and then `str` to check that the data has loaded correctly:
+
+```{r}
+str(wings)
+```
+
+In the regression section, we asked if temperature and food level had meaningful effects on wing length. Now we want to ask questions like: How is the size-temperature relationship affected by different food levels? 
+
+We need to look at plots within groups.
+
+Before we do that, there is a lot of data in the data frame that we don't need for our analysis and we should make sure that we are using the same data for our plots and models. We will subset the data down to the complete data for the three variables and log the length of the wings:
+
+```{r}
+wings <- wings %>%
+  mutate(loglength = log(length_mm))
+wings <- subset(wings, select = c(temp, food_level, loglength)) 
+wings <- na.omit(wings)
+str(wings)
+```
+
+### Boxplots within groups
+
+In the regression section, we used the `subset` option to fit a model just to dragonflies. You can use `subset` with plots too.
+
+$\star$ Add `par(mfrow=c(1,2))` to your script to split the graphics into two panels.
+
+$\star$ Copy over and modify the code from the ANOVA section to create a boxplot of genome size by trophic level into your script.
+
+$\star$ Now further modify the code to generate the plots shown in the figure below (you will have to `subset` your data for this, and also use the subset option of the `plot` command).
+
+
+```{tip}
+You can use the `plot` function's option `main = ` to add titles to a plot.
+```
+
+### `lattice` again
+
+Recall that the `lattice` package provides some very neat extra ways to plot data in groups. They look pretty but the downside is that they don't use the same graphics system — all those `par` commands are useless for these graphs. The defaults look good though!
+
+```{r}
+library(lattice)
+bwplot(loglength ~ temp | food_level, data= wings)
+```
+
+The code `loglength ~ temp | food_level` means plot the relationship between wing length and temperature, but group within levels of food supply. We are using the function `bwplot`, which is provided by `lattice` to create box and whisker plots.
+
+$\star$ Create the lattice plots above from within your script.
+
+Rearrange this code to have three plots, showing the box and whisker plots for `food_level`, grouped within the levels of `temp`.
+
+Try reshaping the R plot window and running the command again. Lattice tries to make good use of the available space when creating lattice plots.
+
+### Barplots again
+
+We're going to make the barplot code from the regression section even more complicated! This time we want to know the mean log genome size within combinations of `temp` and `food_level`. We can still use `tapply`, providing more than one grouping factor. We create a set of grouping factors like this:
+
+```{r}
+groups     <- list(wings$temp, wings$food_level)
+groupMeans <- tapply(wings$loglength, groups, FUN = mean)
+print(groupMeans)
+```
+
+$\star$ Copy this code into your script and run it.
+
+Use this code and the script from the ANOVA section to get the set of
+standard errors for the groups `groupSE`:
+
+```{r}
+seMean <- function(x){
+	# get rid of missing values
+	x <- na.omit(x)
+	# calculate the standard error
+	se <- sqrt(var(x)/length(x))
+	# tell the function to report the standard error
+	return(se)
+}
+```
+
+```{r}
+groups <- list(wings$food_level, wings$temp)
+
+groupMeans <- tapply(wings$loglength, groups, FUN=mean)
+print(groupMeans)
+```
+
+```{r}
+groupSE <- tapply(wings$loglength, groups, FUN=seMean)
+print(groupSE)
+```
+
+Now we can use `barplot`. The default option for a barplot of
+a table is to create a stacked barplot, which is not what we want. The
+option `beside=TRUE` makes the bars for each column appear
+side by side.
+
+Once again, we save the midpoints of the bars to add the
+error bars. The other options in the code below change the colours of
+the bars and the length of error bar caps.
+
+```{r}
+# get upper and lower standard error height
+upperSE <- groupMeans + groupSE
+lowerSE <- groupMeans - groupSE
+# create barplot
+barMids <- barplot(groupMeans, ylim=c(0, max(upperSE)), beside=TRUE, ylab= ' log (wing length (mm)) ' , col=c( ' white ' , ' grey70 '))
+arrows(barMids, upperSE, barMids, lowerSE, ang=90, code=3, len=0.05)
+```
+
+$\star$ Generate the barplot above and then edit your script to change the colours and error bar lengths to your taste.
+
+### Plotting means and confidence intervals
+
+We'll use the `plotmeans` function again as an exercise to change graph settings and to prepare figures for reports and write ups. This is the figure you should be able to reproduce the figure below.
+
+---
+
+*Replace image*
+
+<small> <center> Means and 95% confidence intervals for logged wing length (mm) in *Aedes aegypti* for (a) different temperature levels and (b) for different larval food levels </center> </small>
+
+---
+
+$\star$ Use `plotmeans` from the ANOVA section and the `subset` option to generate the two plots below. You will need to
+set the `ylim` option for the two plots to make them use the same $y$ axis.
+
+$\star$ Use `text` to add labels — the command `par('usr')` will show you the limits of the plot ($x_{min}, x_{max}, y_{min}, y_{max}$) and help pick a location for the labels.
+
+$\star$ Change the `par` settings in your code and redraw the plots to try and make better use of the space. In the example below, the box shows the edges of the R graphics window.
+
+Note the following about the the figure above (generated using plotmeans)): 
+
+* **White space**: The default options in R use wide margins and spaced out axes and take up a lot of space that could be used for plotting data. You've already seen the `par` function and the options `mfrow` for multiple plots and `mar` to adjust margin size. The option `mgp` adjusts the placement of the axis label, tick labels and tick locations. See `?par` for help on the these options.
+
+* **Main titles**: Adding large titles to graphs is also a bad idea — it uses lots of space to explain something that should be in the figure legend. With multiple plots in a figure, you have to label graphs so that the figure legend can refer to them. You can add labels using `text(x,y,'label')`.
+
+* **Figure legends**: A figure caption and legend should give a clear stand-alone description of the whole figure.
+
+* **Referring to figures**: You *must* link from your text to your figures — a reader has to know which figures refer to which results. So: "There are clear differences in mean genome size between species at different trophic levels and between ground dwelling and other species, Figure xx".
+
+
+## Fitting the linear model
+
+All those exploratory visualizations suggest:
+
+* Body size in *Aedes aegytpi* decreases with temperature, which is consistent with the size-temperature rule for many ectotherms. 
+
+* Body size in *Aedes aegytpi* increases with larval food supply
+
+We suspected these things from the ANOVA section analyses, but now we can see that they might have separate effects. We'll fit a linear model to explore this and add the two explanatory variables together.
+
+$\star$ This is an important section — read it through carefully and ask questions if you are unsure. Copy the code into your script and add comments. *Do not just jump to the next action item*!
+
+$\star$ First, fit the model:
+
+```{r}
+model <- lm(loglength ~ temp + food_level, data = mozwing)  
+```
+
+We're going to do things right this time and check the model diagnostics
+before we rush into interpretation.
+
+```{r}
+library(repr) ; options(repr.plot.res = 100, repr.plot.width = 7, repr.plot.height = 8) # Change plot size
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(model)
+```
+
+```{r}
+library(repr) ; options(repr.plot.res = 100, repr.plot.width = 6, repr.plot.height = 6) # Change plot size
+```
+
+Examine these diagnostic plots. There are six predicted values now - three temperature levels for each of the two food levels. Those plots look ok so now we can look at the analysis of variance table:
+
+```{r}
+anova(model)
+```
+
+*Ignore the $p$ values*! Yes, they're highly significant but we want to understand the model, not rubber stamp it with 'significant'.
+
+The sums of squares for the variables are both large compared to the residual sums of squares — there is lots of explained variation! We can calculate the $r^2$ as explained sums of squares over total sums of squares:
+
+$$\frac{0.59 + 0.97}{0.59 + 0.97 + 0.44} = \frac{3.56}{16.77} = 0.78$$
+
+Food level explain more variation than temperature — this makes intuitive sense from the plots since there are big differences between in the figure we generated above (using plotmeans) (a vs b), but smaller differences within.
+
+We could also calculate a significance for the whole model by merging the terms. The total explained sums of squares of $0.59 + 0.97  = 1.56$ uses $2+1 =3$ degrees of freedom, so the mean sums of squares for all the terms together is $1.56/3=0.52$. Dividing this by the residual mean square of 0.003 gives an F of $0.52 / 0.003 = 173.33$.
+
+Now we can look at the summary table to see the coefficients:
+
+```{r}
+summary(model) 
+```
+
+Starting at the bottom of this output, `summary` has again calculated $r^2$ for us and also an $F$ statistic for the whole model, which matches the calculation above.
+
+The other important bits are the four coefficients. The intercept is now the reference level for two variables: it is the mean for individuals that were reared at 22oC with low food supply (0.1 mg day^-1). We then have differences from this value for individuals reared at the other temperatures. There is a big change in wing length associated with increased temperature and food level and both of these have large effects sizes. Increasing temperature from 22oC to 32oC introduced about a 20% difference in wing length. Increased food at 22oC increased wing by ~20%. 
+
+Because the difference is large and the standard error is small, the $t$ value suggests that this difference did not arise just by chance. Put another way, it is significant.
+
+The table below shows how these four coefficients combine to give the predicted values for each of the group means.
+
+|  |22oC|26oC|32oC|
+|:-|:---|:---|:---|
+|**low food** | *0.98* = 0.98 | *0.98 - 0.07* = 0.91    | *0.98 - 0.18* = 0.70 |
+|**high food**|  *0.98 + 0.17* = 1.15    | *0.98  - 0.07 + 0.17* =1.08   | *0.98 - 0.18 + 0.17* = 0.97|
+
+
+
+### Predicted values
+
+Getting the model predictions by hand in this way is tedious and error prone. There is a handy function called `predict` which uses the model directly to calculate values. The default is to give you the prediction for each point in the original data, but you can also ask for specific predictions.
+
+The first thing to do is to set up a small data frame containing the explanatory values we want to use. The variable names and the level name have to match *exactly*, so we'll use the `levels` function to get the names. We want to look at all six combinations, so we'll use the `rep` function to set this up. The `each = 2` option repeats each value twice in succession; the `times = 3` options repeats the whole set of values three times.
+
+Let's do it:
+
+```{r}
+# data frame of combinations of variables
+gd <- rep(levels(wings$food_level), times = 3)
+print(gd)
+```
+
+```{r}
+tl <- rep(levels(wings$temp), each = 2)
+print(tl)
+```
+
+```{r}
+predVals <- data.frame(food_level = gd, temp = tl)
+```
+
+Now we have the data frame of values we want, we can use `predict`. Just as when we created log values, we can save the output back into a new column in the data frame:
+
+# This needs to be fixed!
+
+```{r eval=FALSE, include=FALSE}
+predVals$predict <- predict(model, newdata = predVals)
+print(predVals)
+```
+
+Not that these are in the same order as the bars from your barplot. 
+
+$\star$ Make a copy of the barplot and arrows code from above and modify it
+
+```{r eval=FALSE, include=FALSE}
+par(mfrow=c(1,1))
+barMids <- barplot(groupMeans, ylim=c(0, 1.4), ylab='ln(wing length, mm)', beside=TRUE, col=c('white', 'grey70'))
+
+arrows(barMids, upperSE, barMids, lowerSE, ang=90, code=3, len=0.1)
+points(barMids, predVals$predict, col='red', pch=12)
+```
+
+The red markers do not match to the calculated means. This is because the model only includes a single difference between ground and non-ground species, which has to be the same for each trophic group. That is, there is no interaction between trophic level and ground / non-ground identity of each species in the current model.
+
+$\star$ Add the code for this plot to your script file.
+
+
+# Practice Problem for Linear Models
+
+# Select a focal species from a choice of three species in the dataset `lmdataset.csv` that contain values on trait-temperature relationships. Develop a hypothesis and explore the hypothesis using a linear model. Assess your model fit and assumptions.
+
