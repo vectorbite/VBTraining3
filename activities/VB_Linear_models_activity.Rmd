@@ -1093,57 +1093,502 @@ The table below shows how these four coefficients combine to give the predicted 
 |**high food**|  *0.98 + 0.17* = 1.15    | *0.98  - 0.07 + 0.17* =1.08   | *0.98 - 0.18 + 0.17* = 0.97|
 
 
+# Linear Models: Multiple variables with interactions
 
-### Predicted values
+## Introduction 
 
-Getting the model predictions by hand in this way is tedious and error prone. There is a handy function called `predict` which uses the model directly to calculate values. The default is to give you the prediction for each point in the original data, but you can also ask for specific predictions.
+Here you will build on your skills in fitting linear models with multiple explanatory variables to data. You will learn about another commonly used Linear Model fitting technique: ANCOVA.
 
-The first thing to do is to set up a small data frame containing the explanatory values we want to use. The variable names and the level name have to match *exactly*, so we'll use the `levels` function to get the names. We want to look at all six combinations, so we'll use the `rep` function to set this up. The `each = 2` option repeats each value twice in succession; the `times = 3` options repeats the whole set of values three times.
+We will build two models in this section:
 
-Let's do it:
+* **Model 1**: Is *Ae. aegypti* wing length predicted by interactions between temperature and food level?
+
+* **ANCOVA**: Is body size in Odonata predicted by interactions between genome size and taxonomic suborder?
+
+So far, we have only looked at the independent effects of variables. For example, in the temperature and food level model from the first multiple explanatory variables section, we only looked for specific differences for being exposed to low larval food supply *or* high larval food supply, not for being
+specifically reared at a specific *temperature-food level treatment*. These independent effects of a variable are known as *main effects* and the effects of combinations of variables acting together are known as *interactions* — they describe how the variables *interact*.
+
+### Section aims
+
+The aims of this section are[$^{[1]}$](#fn1):
+
+* Creating more complex Linear Models with multiple explanatory variables
+
+* Including the effects of interactions between multiple variables in a linear model
+
+* Plotting predictions from more complex (multiple explanatory variables) linear models
+
+
+### Formulae with interactions in R
+
+We've already seen a number of different model formulae in R. They all use this syntax:
+
+`response variable ~ explanatory variable(s)`
+
+But we are now going to see two extra pieces of syntax:
+
+* `y ~ a + b + a:b`: The `a:b` means the interaction between `a` and `b` — do combinations of these variables lead to different outcomes?
+
+* `y ~ a * b`:  This a shorthand for the model above. The means fit `a` and `b` as main effects and their interaction `a:b`. 
+
+## Model 1: *Aedes aegypti* wing length
+
+$\star$ Make sure you have changed the working directory to `Code` in your stats coursework directory.
+
+$\star$ Create a new blank script called 'Interactions.R' and add some introductory comments.
+
+$\star$ Read in the data:
 
 ```{r}
-# data frame of combinations of variables
+read.csv('../data/traitdata_Huxleyetal_2021.csv',stringsAsFactors = TRUE)
+```
+
+For practice, subset the dataset, define any categorical variables, and add any columns that might missing. Revist the previous sections, if you have forgotten what is needed!
+
+Let's refit the model from the earlier multiple explanatory variable section, but including the interaction between temperature and food level. We'll immediately check the model is appropriate:
+
+```{r}
+model <- lm(loglength ~ temp * food_level, data= wings)
+par(mfrow=c(2,2), mar=c(3,3,1,1), mgp=c(2, 0.8,0))
+plot(model)   
+```
+
+Now, examine the `anova` and `summary` outputs for the model:
+
+```{r}
+anova(model)
+```
+
+Compared to the model from the first multiple explanatory variables section, there is an extra line at the bottom. The top two are the same and show that temperature and food level both have independent main effects. The extra line
+shows that there is also an interaction between the two. It doesn't explain very much variation, and it is non-significant.
+
+Again, we can calculate the $r^2$ for the model: 
+
+$\frac{0.59 + 0.97 + 0.01}{0.59 + 0.97 + 0.01 + 0.43} = 0.78$ 
+
+The model from the first multiple explanatory variables section without the interaction had an $r^2 = 0.78$ — our new
+model explains 0% more of the variation in the data.
+
+The summary table is as follows:
+
+```{r}
+summary(model)
+```
+
+The lines in this output are:
+
+1. The reference level (intercept) for low-food at 22oC. (The reference level is decided just by  alphabetic/numeric order of the levels)
+2. Two differences for being in different food levels.
+3. One difference for being high-food at 22oC.
+4. Two new differences that give specific differences for high-food at 26 and 32oC.
+
+The first four lines, as in the model from the ANOVA section, which would allow us to find the predicted values for each group *if the size of the differences did not vary between levels because of the interactions*. That is, this part of the model only includes a single difference low-food and high-food, which has to be the same for each temperature because it ignores interactions between temperature and low- / high-food identity of each treatment. The last two lines then give the estimated coefficients associated with the interaction terms, and allow cause the size of differences to vary
+between levels because of the further effects of interactions.
+
+The table below show how these combine to give the predictions for each group combination, with those two new lines show in red:
+
+| |**low food** |  **high food** |
+|:- |:- |:-|
+|**22oC** | 0.97 = 0.97        | 0.97 + 0.17 = 1.14 |
+|**26oC** | 0.97 - 0.08 = 0.89 | 0.97 - 0.08 + 0.17<span style="color:red"> + 0.01</span> = 1.07|
+|**32oC** | 0.97 - 0.15 = 0.82 | 0.97 - 0.15 + 0.17<span style="color:red"> - 0.04</span> = 0.95|
+
+So why are there two new coefficients? For interactions between two factors, there are always $(n-1)\times(m-1)$ new coefficients, where $n$ and $m$ are the number of levels in the two factors (low- or high-food: 2 levels and temperature: 3 levels, in our current example). So in this model, $(3-1) \times (2-1) =2$. It might be easier to understand why graphically: 
+
+![image](../graphics/interactionsdiag.png)
+
+The prediction for the white boxes above can be found by adding the main effects together but for the grey boxes, we need to find specific differences. So there are $(n-1)\times(m-1)$ interaction coefficients (count the number of grey boxes) to add.
+
+If we put this together, what is the model telling us?
+
+* The interaction model does't tell us anything more than the model without interactions -- body size in *Ae. aegypti* decreases with temperature and increases with food level.
+
+This finding suggests that food limitation can exacerbate the negative effect that increased temperature has on body size. However, the interaction term in the `anova` output suggests that variation between food levels in degree to which body size decreases with temperature is non-significant.
+
+$\star$ Copy the code above into your script and run the model.
+
+Make sure you understand the output!
+
+Just to make sure the sums above are correct, we'll use the same code as
+in earlier multiple explanatory variables section to get R to calculate predictions for us, similar to the way we did before:
+
+```{r eval=FALSE, include=FALSE}
+# a data frame of combinations of variables
 gd <- rep(levels(wings$food_level), times = 3)
 print(gd)
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 tl <- rep(levels(wings$temp), each = 2)
 print(tl)
 ```
 
-```{r}
-predVals <- data.frame(food_level = gd, temp = tl)
-```
-
-Now we have the data frame of values we want, we can use `predict`. Just as when we created log values, we can save the output back into a new column in the data frame:
-
-# This needs to be fixed!
+Again, remember that the `each = 2` option repeats each value twice in succession; the `times = 3` options repeats the whole set of values (the whole vector) three times.
 
 ```{r eval=FALSE, include=FALSE}
+# New data frame
+predVals <- data.frame(food_level = gd, temp = tl)
+
+# predict using the new data frame
 predVals$predict <- predict(model, newdata = predVals)
 print(predVals)
 ```
 
-Not that these are in the same order as the bars from your barplot. 
+$\star$ Include and run the code for gererating these predictions in your script.
 
-$\star$ Make a copy of the barplot and arrows code from above and modify it
+If we plot these data points onto the barplot from the first multiple explanatory variables section, they now lie exactly on the mean values, because we've allowed for interactions. How much overlap would you expect, if you were to plot the predictions from the model without the interaction term? 
 
 ```{r eval=FALSE, include=FALSE}
 par(mfrow=c(1,1))
 barMids <- barplot(groupMeans, ylim=c(0, 1.4), ylab='ln(wing length, mm)', beside=TRUE, col=c('white', 'grey70'))
-
 arrows(barMids, upperSE, barMids, lowerSE, ang=90, code=3, len=0.1)
 points(barMids, predVals$predict, col='red', pch=12)
 ```
 
-The red markers do not match to the calculated means. This is because the model only includes a single difference between ground and non-ground species, which has to be the same for each trophic group. That is, there is no interaction between trophic level and ground / non-ground identity of each species in the current model.
 
-$\star$ Add the code for this plot to your script file.
+## Model 2 (ANCOVA): Body Weight in Odonata
 
+We'll go all the way back to the regression analyses from the Regression section. Remember that we fitted two separate regression lines to the data for damselflies and dragonflies. We'll now use an interaction to fit these in a single model. This kind of linear model — with a mixture of continuous variables and factors — is often called an *analysis of covariance*, or ANCOVA. That is, ANCOVA is a type of linear model that blends ANOVA and regression. ANCOVA evaluates whether population means of a dependent variable are equal across levels of a categorical independent variable, while statistically controlling for the effects of other continuous variables that are not of primary interest, known as covariates.
 
-# Practice Problem for Linear Models
+*Thus, ANCOVA is a linear model with one categorical and one or more continuous predictors*.
 
-# Select a focal species from a choice of three species in the dataset `lmdataset.csv` that contain values on trait-temperature relationships. Develop a hypothesis and explore the hypothesis using a linear model. Assess your model fit and assumptions.
+We will use the odonates data.
+
+$\star$ First load the data:
+
+```{r}
+odonata <- read.csv('../data/GenomeSize.csv')
+```
+
+$\star$ Now create two new variables in the `odonata` data set called `logGS` and `logBW` containing log genome size and log body weight:
+
+```{r}
+odonata$logGS <- log(odonata$GenomeSize)
+odonata$logBW <- log(odonata$BodyWeight)
+```
+
+The models we fitted [before](12-ExpDesign.ipynb) looked like this:
+
+![image](../graphics/dragonData.svg)
+
+We can now fit the model of body weight as a function of both genome size and suborder:
+
+```{r}
+odonModel <- lm(logBW ~ logGS * Suborder, data = odonata)
+```
+
+```{r}
+summary(odonModel)
+```
+
+Again, we'll look at the <span>anova</span> table first:
+
+```{r}
+anova(odonModel)
+```
+
+Interpreting this:
+
+* There is no significant main effect of log genome size. The *main* effect is the important thing here — genome size is hugely important but does very different things for the two different suborders. If we ignored `Suborder`, there isn't an overall relationship: the average of those two lines is pretty much flat.
+
+* There is a very strong main effect of Suborder: the mean body weight in the two groups are very different.
+
+* There is a strong interaction between suborder and genome size. This is an interaction between a factor and a continuous variable and shows that the *slopes* are different for the different factor levels.
+
+Now for the summary table:
+
+```{r}
+summary(odonModel)
+```
+
+* The first thing to note is that the $r^2$ value is really high. The model explains three quarters (0.752) of the variation in the data.
+
+* Next, there are four coefficients:
+
+    * The intercept is for the first level of `Suborder`, which is Anisoptera (dragonflies).
+    * The next line, for `log genome size`, is the slope for Anisoptera. 
+    * We then have a coefficient for the second level of `Suborder`, which is Zygoptera (damselflies). As with the first model, this difference in factor levels is a difference in mean values and shows the difference in the intercept for Zygoptera.
+    * The last line is the interaction between `Suborder` and `logGS`. This shows how the slope for Zygoptera differs from the slope for Anisoptera.
+
+How do these hang together to give the two lines shown in the model? We can calculate these by hand: 
+
+\begin{align*}
+ \textrm{Body Weight} &= -2.40 + 1.01 \times \textrm{logGS} & \textrm{[Anisoptera]}\\
+ \textrm{Body Weight} &= (-2.40 -2.25) + (1.01 - 2.15) \times \textrm{logGS} & \textrm{[Zygoptera]}\\
+        &= -4.65 - 1.14 \times \textrm{logGS}
+\end{align*}
+
+$\star$ Add the above code into your script and check that you understand the outputs.
+
+We'll use the `predict` function again to get the predicted values from the model and add lines to the plot above.
+
+First, we'll create a set of numbers spanning the range of genome size:
+
+```{r}
+#get the range of the data:
+rng <- range(odonata$logGS)
+#get a sequence from the min to the max with 100 equally spaced values:
+LogGSForFitting <- seq(rng[1], rng[2], length = 100)
+```
+
+Have a look at these numbers:
+
+```{r}
+print(LogGSForFitting)
+```
+
+We can now use the model to predict the values of body weight at each of those points for each of the two suborders:
+
+```{r}
+#get a data frame of new data for the order
+ZygoVals <- data.frame(logGS = LogGSForFitting, Suborder = "Zygoptera")
+
+#get the predictions and standard error
+ZygoPred <- predict(odonModel, newdata = ZygoVals, se.fit = TRUE)
+
+#repeat for anisoptera
+AnisoVals <- data.frame(logGS = LogGSForFitting, Suborder = "Anisoptera")
+AnisoPred <- predict(odonModel, newdata = AnisoVals, se.fit = TRUE)
+```
+
+We've added `se.fit=TRUE` to the function to get the standard error around the regression lines. Both `AnisoPred` and `ZygoPred` contain predicted values (called `fit`) and standard error values (called `se.fit`) for each of the values in our generated values in `LogGSForFitting` for each of the two suborders.
+
+We can add the predictions onto a plot like this:
+
+```{r}
+# plot the scatterplot of the data
+plot(logBW ~ logGS, data = odonata, col = Suborder)
+# add the predicted lines
+lines(AnisoPred$fit ~ LogGSForFitting, col = "black")
+lines(AnisoPred$fit + AnisoPred$se.fit ~ LogGSForFitting, col = "black", lty = 2)
+lines(AnisoPred$fit - AnisoPred$se.fit ~ LogGSForFitting, col = "black", lty = 2)
+```
+
+$\star$ Copy the prediction code into your script and run the plot above.
+
+Copy and modify the last three lines to add the lines for the Zygoptera. Your final plot should look like this:
+
+![image](../graphics/odonPlot.svg)
+
+---
+
+# Model simplification
+
+## Introduction 
+
+In biology, we often use statistics to compare competing hypotheses in order to work out the simplest explanation for some data. This often involves collecting several explanatory variables that describe different hypotheses and then fitting them together in a single model, and often including interactions between those variables.
+
+In all likelihood, not all of these model *terms* will be important. If we remove unimportant terms, then the explanatory power of the model will get worse, but might not get significantly worse.
+
+> *"It can scarcely be denied that the supreme goal of all theory is to make the irreducible basic elements as simple and as few as possible without having to surrender the adequate representation of a single datum of experience."* 
+>
+> &ndash; *Albert Einstein*
+
+Or to paraphrase:
+
+> *"Everything should be made as simple as possible, but no simpler."*
+
+The approach we will look at is to start with a *maximal model* — the model that contains everything that might be important — and simplify it towards the *null model* — the
+model that says that none of your variables are important. Hopefully, there is a point somewhere in between where you can't remove any further terms without making the model significantly worse: this is called the *minimum adequate model*.
+
+![image](../graphics/minmodflow.png)
+
+### Section aims
+
+The main aim of this section[$^{[1]}$](#fn1) is to learn how to build and then simplify complex models by removing non-explanatory terms, to arrive at the *Minimum Adequate Model*.
+
+### The process of model simplification
+
+Model simplification is an iterative process. The flow diagram below shows how it works: at each stage you try and find an acceptable simplification. If successful, then you start again with the new simpler model and try and find a way to simplify this, until eventually, you can't find anything more to remove.
+
+![image](../graphics/maxmodflow.png)
+
+As always, we can use an $F$-test to compare two models and see if they have significantly different explanatory power (there are also other ways to do this, such as using the Akaike Information Criterion, but we will not cover this here). In this context, the main thing to remember is that significance of the $F$-test used to compare a model and its simplified counterpart is a *bad* thing — it means that we've removed a term from the fitted model that makes it *significantly* worse.
+
+## An example 
+
+We'll be using the wing length dataset for this practical, so once again:
+
+$\star$ Make sure you have changed the working directory to your stats module `code` folder.
+
+$\star$  Create a new blank script called `MyModelSimp.R`.
+
+$\star$  Load the wing length data into a data frame called `wings`:
+
+```{r}
+wings <- read.csv('../data/traitdata_Huxleyetal_2021.csv',stringsAsFactors = TRUE)
+```
+
+In previous sections, we looked at how the categorical variables `temp` and `food_level` predicted wing length in in *Aedes aegypti*. In this section, we will add in another continuous variable: adult lifespan. The first thing we will do is to log both variables and reduce the dataset to the rows for which all of these data are available:
+
+```{r}
+wings$temp       <- as_factor(wings$temp)
+wings$food_level <- as_factor(wings$food_level)
+
+wings$loglength   <- log(wings$length_mm)
+wings$loglifespan <- log(wings$adult_lifespan)
+
+# reduce dataset to four key variables
+wings <- subset(wings, select = c(loglength, loglifespan, temp, food_level)) 
+
+# remove the row with missing data
+wings <- na.omit(wings)
+```
+
+$\star$ Copy the code above into your script and run it
+
+Check that the data you end up with has this structure:
+
+```{r}
+str(wings)
+```
+
+## A Maximal model
+
+First let's fit a model including all of these variables and all of the interactions:
+
+```{r}
+model <- lm(formula = loglifespan ~ loglength * temp * food_level, data = wings)
+```
+
+$\star$ Add this model-fitting step in your script.
+
+$\star$ Look at the output of `anova(model)` and `summary(model)`.
+
+Scared? Don't be! There are a number of points to this exercise:
+
+1.  These tables show exactly the kind of output you've seen before. Sure, there are lots of rows but each row is just asking whether a model term (`anova`) or a model coefficient (`summary`) is significant.
+
+2.  Some of the rows are significant, others aren't: some of the model terms are not explanatory.
+
+3.  The two tables show similar things - only a few stars for the `anova` table and the `summary` table.
+
+4.  That last line in the `anova` table: `loglength:temp:food_level`. This is an interaction of three variables capturing how the slope for lifespan changes for different wing lengths for individuals in different temperature-food levels. Does this seem easy to understand?
+
+The real lesson here is that it is easy to fit complicated models in R.
+
+*Understanding and explaining them is a different matter*.
+
+The temptation is always to start with the most complex possible model but this is rarely a good idea.
+
+## A better maximal model
+
+Instead of all possible interactions, we'll consider two-way interactions: how do pairs of variables affect each other?
+
+There is a shortcut for this: `y ~ (a + b + c)^2` gets all two way combinations of the variables in the brackets, so is a quicker way of getting this model:
+
+`y ~ a + b + c + a:b + a:c + b:c`
+
+So let's use this to fit a simpler maximal model:
+
+```{r}
+model <- lm(loglifespan ~ (loglength + temp + food_level)^2, data = wings)
+```
+
+The `anova` table for this model looks like this:
+
+```{r}
+anova(model)
+```
+
+The first lines are the *main effects*: two are significant and one isn't. Then there are the three interactions. One of these is very significant: `loglength:temp`,
+which suggests that the slope of log lifespan value with wing length differs between temperatures. The other interactions are non-significant although some are close.
+
+$\star$ Run this model in your script.
+
+$\star$ Look at the output of `anova(model)` and `summary(model)`.
+
+$\star$ Generate and inspect the model diagnostic plots.
+
+## Model simplification
+
+Now let's simplify the model we fitted above. Model simplification is not as straightforward as just dropping terms. Each time you remove a term from a model, the model will change: the model will get worse, since some of the sums of squares are no longer explained, but the remaining variables may partly compensate for this loss of explanatory power. The main point is that if it gets only a little worse, its OK, as the tiny amount of additional variation explained by the term you removed is not really worth it. 
+
+But how much is "tiny amount"? This is what we will learn now by using the $F$-test.   Again, remember: significance of the $F$-test used to compare a model and its simplified counterpart is a *bad* thing — it means that we've removed a term from the fitted model that makes the it *significantly* worse.
+
+The first question is: *what terms can you remove from a model*? Obviously, you only want to remove non-significant terms, but there is another rule – you cannot remove a main effect or an interaction while those main effects or interactions are present in a more complex interaction. For example, in the model `y ~ a + b + c + a:b + a:c + b:c`, you cannot drop `c` without dropping both `a:c` and `b:c`.
+
+The R function `drop.scope` tells you what you can drop from a model. Some examples:
+
+```{r}
+drop.scope(model)
+```
+
+```{r}
+drop.scope(y ~ a + b + c + a:b)
+```
+
+```{r}
+drop.scope(y ~ a + b + c + a:b + b:c + a:b:c)
+```
+
+The last thing we need to do is work out how to remove a term from a model. We could type out the model again, but there is a shortcut using the function `update`:
+
+```{r}
+# a simple model
+f <- y ~ a + b + c + b:c
+
+# remove b:c from the current model
+update(f, . ~ . - b:c)
+```
+
+```{r}
+# model g as a response using the same explanatory variables.
+update(f, g ~ .)
+```
+
+Yes, the syntax is weird. The function uses a model or a formula and then allows you to alter the current formula. The dots in the code `. ~ . ` mean 'use whatever is currently in the response or explanatory variables'. It gives a simple way of changing a model.
+
+Now that you have learned the syntax, let's try model simplification with the mammals dataset. 
+
+From the above `anova` and `drop.scope` output, we know that the interaction `loglength:temp:food_level` is not significant and a valid term. So, let's remove this term:
+
+```{r}
+model2 <- update(model, . ~ . - loglength:temp:food_level)
+```
+
+And now use ANOVA to compare the two models:
+
+```{r}
+anova(model, model2)
+```
+
+This tells us that `model2` is *not* significantly worse than `model`. That is, dropping that one interaction term did not result in much of a loss of predictability. 
+
+Now let's look at this simplified model and see what else can be removed:
+
+```{r}
+anova(model2)
+```
+
+```{r}
+drop.scope(model2)
+```
+
+$\star$ Add this first simplification to your script and re-run it.
+
+$\star$  Look at the output above and decide what is the next possible term to delete
+
+$\star$ Using the code above as a model, create `model3` as the next simplification. (remember to use `model2` in your `update` call and not `model`).
+
+## Exercise
+
+Now for a more difficult exercise: 
+
+$\star$ Using the code above to guide you, try and find a minimal adequate model that you are happy with. In each step, the output of `anova(model, modelN)` should be non-significant (where $N$ is the current step).
+
+It can be important to consider both `anova` and `summary` tables. It can be worth trying to remove things that look significant in one table but not the other — some terms can explain significant variation on the `anova` table but the coefficients are not significant.
+
+Remember to remove *terms*: with categorical variables, several coefficients in the `summary` table may come from one term in the model and have to be removed together.
+
+When you have got your final model, save the model as an R data file: `save(modelN, file='myFinalModel.Rda')`.
+
+-----
+
+<a id="fn1"></a>
+[1]: Here you work with the script file `ModelSimp.R`
+
+# Group project
+
+## Select a focal species from a choice of three datasets that contain values on trait-temperature relationships. Develop a hypothesis and explore the hypothesis using a linear model. Assess your model fit and assumptions.
 
