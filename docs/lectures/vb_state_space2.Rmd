@@ -1,0 +1,722 @@
+---
+title: |
+  | VectorBiTE Methods Training
+  | Bayesian State Space Modeling for Time Series Data
+author: |
+  | The VectorBiTE Team
+  | (John W. Smith, Virginia Tech)
+date: "Summer 2021"
+output:
+  beamer_presentation:
+    colortheme: seagull
+    fig_caption: no
+    fonttheme: structurebold
+    highlight: tango
+    includes:
+      in_header: header.tex
+    latex_engine: pdflatex
+    slide_level: 2
+    theme: Szeged
+  ioslides_presentation:
+    highlight: tango
+  slidy_presentation:
+    highlight: tango
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(cache = FALSE, 
+                      #echo = FALSE, 
+                      #message = FALSE, 
+                      #warning = FALSE,
+                      #fig.height=6, 
+                      #fig.width = 1.777777*6,
+                      tidy = FALSE, 
+                      comment = NA, 
+                      highlight = TRUE, 
+                      prompt = FALSE, 
+                      crop = TRUE,
+                      comment = ">",
+                      collapse = TRUE)
+library(knitr)
+library(kableExtra)
+library(xtable)
+library(viridis)
+options(stringsAsFactors=FALSE)
+knit_hooks$set(no.main = function(before, options, envir) {
+    if (before) par(mar = c(4.1, 4.1, 1.1, 1.1))  # smaller margin on top
+})
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(width = 60)
+source("my_knitter.R")
+#library(tidyverse)
+#library(reshape2)
+#theme_set(theme_light(base_size = 16))
+make_latex_decorator <- function(output, otherwise) {
+  function() {
+      if (knitr:::is_latex_output()) output else otherwise
+  }
+}
+insert_pause <- make_latex_decorator(". . .", "\n")
+insert_slide_break <- make_latex_decorator("----", "\n")
+insert_inc_bullet <- make_latex_decorator("> *", "*")
+insert_html_math <- make_latex_decorator("", "$$")
+```
+<style>
+p.caption {
+  font-size: 0.6em;
+}
+</style>
+
+## Fitting State Space Models
+
+## Fitting State Space Models
+
+In this section we will: 
+
+- Discuss basic fitting methods for Linear Gaussian State Space Models (NDLMs)
+
+## Fitting State Space Models
+
+In this section we will: 
+
+- Discuss basic fitting methods for Linear Gaussian State Space Models (NDLMs)
+- Discuss differences between smoothing and forward filtering
+
+## Fitting State Space Models
+
+In this section we will: 
+
+- Discuss basic fitting methods for Linear Gaussian State Space Models (NDLMs)
+- Discuss differences between smoothing and forward filtering
+- Fit NDLMs in `JAGS`
+
+## Fitting State Space Models
+
+In this section we will: 
+
+- Discuss basic fitting methods for Linear Gaussian State Space Models (NDLMs)
+- Discuss differences between smoothing and forward filtering
+- Fit NDLMs in `JAGS`
+- Examine some diagnostics and applications in `JAGS`
+
+## Linear Gaussian State Estimation: Forward in Time
+
+## Linear Gaussian State Estimation: Forward in Time
+
+- Suppose that we are interested in the current value of $x_t$, given the previous $t-1$ estimates $x_{1:t-1}$, and the observations $y_{1:t}$.
+
+## Linear Gaussian State Estimation: Forward in Time
+
+- Suppose that we are interested in the current value of $x_t$, given the previous $t-1$ estimates $x_{1:t-1}$, and the observations $y_{1:t}$.  
+- The model is linear and Gaussian, so the evolution function and observation density function will have the form
+\begin{center}
+$\begin{aligned}
+&x_t \sim N(A_t x_{t-1} + b_t, \phi) \\
+&y_t \sim N(\alpha_t x_t + \beta_t, \tau)
+\end{aligned}$
+\end{center}
+
+## Linear Gaussian State Estimation: Forward in Time
+
+- Suppose that we are interested in the current value of $x_t$, given the previous $t-1$ estimates $x_{1:t-1}$, and the observations $y_{1:t}$.  
+- The model is linear and Gaussian, so the evolution function and observation density function will have the form
+\begin{center}
+$\begin{aligned}
+&x_t \sim N(A_t x_{t-1} + b_t, \phi) \\
+&y_t \sim N(\alpha_t x_t + \beta_t, \tau)
+\end{aligned}$
+\end{center}
+- Is there an analytic full conditional distribution for $x_t$?
+
+
+## Linear Gaussian State Estimation: Forward in Time
+
+- Suppose that we are interested in the current value of $x_t$, given the previous $t-1$ estimates $x_{1:t-1}$, and the observations $y_{1:t}$.  
+- The model is linear and Gaussian, so the evolution function and observation density function will have the form
+\begin{center}
+$\begin{aligned}
+&x_t \sim N(A_t x_{t-1} + b_t, \phi) \\
+&y_t \sim N(\alpha_t x_t + \beta_t, \tau)
+\end{aligned}$
+\end{center}
+- Is there an analytic full conditional distribution for $x_t$?
+    - Yes there is, and its a familiar friend
+
+
+## Linear Gaussian State Estimation: Forward in Time
+
+- If we write out the equation for the full conditional distribution, 
+$\begin{aligned}
+\pi(x_t | x_{1:t-1}, y_{1:t}) \propto &\exp \Big( - \frac{\phi}{2} (x_t - A_t x_{t-1} - b_t)^2 \Big) \\ &\exp \Big( - \frac{\tau}{2} (y_t - \alpha_t x_{t} - \beta_t)^2 \Big), 
+\end{aligned}$
+
+## Linear Gaussian State Estimation: Forward in Time
+
+- If we write out the equation for the full conditional distribution, 
+$\begin{aligned}
+\pi(x_t | x_{1:t-1}, y_{1:t}) \propto &\exp \Big( - \frac{\phi}{2} (x_t - A_t x_{t-1} - b_t)^2 \Big) \\ &\exp \Big( - \frac{\tau}{2} (y_t - \alpha_t x_{t} - \beta_t)^2 \Big), 
+\end{aligned}$
+
+we can do a little algebra to come to the conclusion that 
+
+$\begin{aligned}
+\pi(x_t | \cdot ) \sim N(\mu^* = \frac{\phi(A_t x_{t-1} + b_t) + \tau \alpha_t ( y_t - \beta_t))}{\phi + \tau \alpha_t ^2}, \phi^* = \phi + \tau\alpha_t ^2)
+\end{aligned}$
+    
+## Linear Gaussian State Estimation: Forward in Time
+
+- If we write out the equation for the full conditional distribution, 
+$\begin{aligned}
+\pi(x_t | x_{1:t-1}, y_{1:t}) \propto &\exp \Big( - \frac{\phi}{2} (x_t - A_t x_{t-1} - b_t)^2 \Big) \\ &\exp \Big( - \frac{\tau}{2} (y_t - \alpha_t x_{t} - \beta_t)^2 \Big), 
+\end{aligned}$
+
+we can do a little algebra to come to the conclusion that 
+
+$\begin{aligned}
+\pi(x_t | \cdot ) \sim N(\mu^* = \frac{\phi(A_t x_{t-1} + b_t) + \tau \alpha_t ( y_t - \beta_t))}{\phi + \tau \alpha_t ^2}, \phi^* = \phi + \tau\alpha_t ^2)
+\end{aligned}$
+
+- This is the Kalman filter solution for updating the states
+
+
+## Linear Gaussian State Estimation: Smoothing
+
+## Linear Gaussian State Estimation: Smoothing
+
+- What if instead of estimating the current value of $x_t$ given the previous $t-1$ estimates $x_{1:t-1}$ and the observations $y_{1:t}$, we wanted to use all of the data, $x_{1:T}$ and $y_{1:T}$?
+
+## Linear Gaussian State Estimation: Smoothing
+
+- What if instead of estimating the current value of $x_t$ given the previous $t-1$ estimates $x_{1:t-1}$ and the observations $y_{1:t}$, we wanted to use all of the data, $x_{1:T}$ and $y_{1:T}$?
+- Why would we want to do this?
+
+## Linear Gaussian State Estimation: Smoothing
+
+- What if instead of estimating the current value of $x_t$ given the previous $t-1$ estimates $x_{1:t-1}$ and the observations $y_{1:t}$, we wanted to use all of the data, $x_{1:T}$ and $y_{1:T}$?
+- Why would we want to do this?
+    - We get more information about the latent states by using all of the data
+
+## Linear Gaussian State Estimation: Smoothing
+
+- What if instead of estimating the current value of $x_t$ given the previous $t-1$ estimates $x_{1:t-1}$ and the observations $y_{1:t}$, we wanted to use all of the data, $x_{1:T}$ and $y_{1:T}$?
+- Why would we want to do this?
+    - We get more information about the latent states by using all of the data
+    - Better estimation of $\Theta$
+
+## Linear Gaussian State Estimation: Smoothing
+
+- What if instead of estimating the current value of $x_t$ given the previous $t-1$ estimates $x_{1:t-1}$ and the observations $y_{1:t}$, we wanted to use all of the data, $x_{1:T}$ and $y_{1:T}$?
+- Why would we want to do this?
+    - We get more information about the latent states by using all of the data
+    - Better estimation of $\Theta$
+- The process of using all of the data at once to estimate the latent states is commonly called _smoothing_
+
+
+## Linear Gaussian State Estimation: Smoothing
+
+## Linear Gaussian State Estimation: Smoothing
+
+- If we write out the equation for the full conditional distribution, 
+
+$\begin{aligned}
+\pi(x_t | x_{1:{t-1}}, x_{t+1:T}, y_{1:T}) \propto &\exp \Big( - \frac{\phi}{2} (x_t - A_t x_{t-1} - b_t)^2 \Big) \\ &\exp \Big( - \frac{\tau}{2} (y_t - \alpha_t x_{t} - \beta_t)^2 \Big) \\ &\exp \Big (- \frac{\phi}{2} (x_{t+1} - A_{t+1} x_{t} - b_{t+1})^2 \Big), 
+\end{aligned}$
+
+## Linear Gaussian State Estimation: Smoothing
+
+- If we write out the equation for the full conditional distribution, 
+
+$\begin{aligned}
+\pi(x_t | x_{1:{t-1}}, x_{t+1:T}, y_{1:T}) \propto &\exp \Big( - \frac{\phi}{2} (x_t - A_t x_{t-1} - b_t)^2 \Big) \\ &\exp \Big( - \frac{\tau}{2} (y_t - \alpha_t x_{t} - \beta_t)^2 \Big) \\ &\exp \Big (- \frac{\phi}{2} (x_{t+1} - A_{t+1} x_{t} - b_{t+1})^2 \Big), 
+\end{aligned}$
+
+we can do a little algebra to come to the conclusion that \vspace{.4cm}
+
+\footnotesize
+$\begin{aligned}
+\pi(x_t | \cdot ) \sim N(&\mu^* = \frac{\phi(A_t x_{t-1} + b_t + A_{t+1}(x_{t+1}-b_{t+1})) + \tau \alpha_t ( y_t - \beta_t)}{\phi(1 + A_{t+1}^2) + \tau \alpha_t ^2}, \\
+&\phi^* = \phi(1 + A_{t+1}^2) + \tau\alpha_t ^2)
+\end{aligned}$
+
+## Linear Gaussian State Estimation: Smoothing
+
+- If we write out the equation for the full conditional distribution, 
+
+$\begin{aligned}
+\pi(x_t | x_{1:t-1}, x_{t+1:T}, y_{1:T}) \propto &\exp \Big( - \frac{\phi}{2} (x_t - A_t x_{t-1} - b_t)^2 \Big) \\ &\exp \Big( - \frac{\tau}{2} (y_t - \alpha_t x_{t} - \beta_t)^2 \Big) \\ &\exp \Big (- \frac{\phi}{2} (x_{t+1} - A_{t+1} x_{t} - b_{t+1})^2 \Big), 
+\end{aligned}$
+
+we can do a little algebra to come to the conclusion that \vspace{.4cm}
+
+\footnotesize
+$\begin{aligned}
+\pi(x_t | \cdot ) \sim N(&\mu^* = \frac{\phi(A_t x_{t-1} + b_t + A_{t+1}(x_{t+1}-b_{t+1})) + \tau \alpha_t ( y_t - \beta_t)}{\phi(1 + A_{t+1}^2) + \tau \alpha_t ^2}, \\
+&\phi^* = \phi(1 + A_{t+1}^2) + \tau\alpha_t ^2)
+\end{aligned}$
+
+- This is the smoothing solution for updating the states
+
+## Forward Filtering vs Smoothing
+
+## Forward Filtering vs Smoothing
+
+- The key difference between forward filtering vs smoothing is that forwarding filtering uses only the data _before_ time step $t$, while smoothing uses all of the data
+
+## Forward Filtering vs Smoothing
+
+- The key difference between forward filtering vs smoothing is that forwarding filtering uses only the data _before_ time step $t$, while smoothing uses all of the data
+- Forward filtering is frequently used in _real time forecasting_ applications, where a process is being monitored and predicted, usually on short timescales
+
+## Forward Filtering vs Smoothing
+
+- The key difference between forward filtering vs smoothing is that forwarding filtering uses only the data _before_ time step $t$, while smoothing uses all of the data
+- Forward filtering is frequently used in _real time forecasting_ applications, where a process is being monitored and predicted, usually on short timescales
+
+- Applications include robotics, weather forecasting
+
+## Forward Filtering vs Smoothing
+
+![Example of smoothing taken from Dietze 2018. Note that the uncertainty is highest in the center of the missing observations](../graphics/dietze_smoothing.png)
+
+Example of smoothing taken from Dietze 2018. Note that the uncertainty is highest in the center of the missing observations
+
+## Forward Filtering vs Smoothing
+
+![Example of forward filtering taken from Dietze 2018. The uncertainty grows increasingly large because we are only 
+looking forward in time](../graphics/dietze_forward.png)
+
+Example of forward filtering taken from Dietze 2018. The uncertainty grows increasingly large because we are only 
+looking forward in time
+
+## Example: Simple Linear Gaussian Model
+
+- Let's start with a simple state space model of the form
+
+\begin{center}
+$\begin{aligned}
+&x_t \sim N(A_t x_{t-1} + b_t, \phi) \\
+&y_t \sim N(\alpha_t x_t + \beta_t, \tau)
+\end{aligned}$
+\end{center}
+
+- Lets assume $A, b, \alpha, \beta, \phi, \tau$ are all known
+- Suppose $A = .99, b = .5, \alpha = .95, \beta = 1, \phi = 4, \tau = 4$
+- Let $x_1 = 50$
+
+## Example: Simple Linear Gaussian Model
+```{r}
+## set seed for consistent results
+library(matrixStats)
+set.seed(123)
+
+## set values for parameters
+t <- 50
+y <- x <- rep(0, t)
+A <- .99
+b <- .5
+phi <- 1/.5^2
+tau <- 4
+alpha <- .95
+beta <- 1
+```
+
+## Example: Simple Linear Gaussian Model
+```{r}
+## set initial x, y values
+x[1] = 50
+y[1] = alpha*x[1] + beta + rnorm(1, 0, sqrt(1/tau))
+
+## generate latent states and observations
+for (i in 2:t){
+  x[i] = A*x[i-1] + b + rnorm(1, 0, sqrt(1/phi))
+  y[i] = alpha*x[i] + beta + rnorm(1, 0, sqrt(1/tau))
+}
+```
+
+## Example: Simple Linear Gaussian Model
+```{r}
+plot(x, type = 'l', xlab = 'Time', lwd = 3)
+```
+
+## Example: Simple Linear Gaussian Model
+
+- Now, let's use a Kalman Filter to estimate the states
+
+\footnotesize
+```{r}
+## initialize states for kalman filter and smoother
+states.kf <- matrix(NA, nrow = 1000, ncol = t)
+states.kf[,1] <- x[1]
+states.kf[1,] <- (y - beta) / alpha
+## sample 1000 points with KF
+for (i in 2:1000){
+  for (j in 2:t){
+    states.kf[i,j] <- rnorm(1, mean = (phi*(A*states.kf[i-1,j-1] + b) 
+                         + tau*(alpha*y[j] - alpha*beta))
+                         / (phi + tau*alpha^2), 
+                         sd = sqrt(1 / (phi + tau*alpha^2)))
+  }
+}
+```
+
+## Example: Simple Linear Gaussian Model
+
+```{r, echo = FALSE}
+plot(x, type = 'l', lwd = 3,
+     ylim = c(min(colQuantiles(states.kf, probs = .05))*.99, 
+              max(colQuantiles(states.kf, probs = .95)*1.01)))
+points(colMeans(states.kf), type = 'l', col = 'blue', lwd = 3)
+points(colQuantiles(states.kf, probs = .95), type = 'l', col = 'blue', lwd = 2, lty = 2)
+points(colQuantiles(states.kf, probs = .05), type = 'l', col = 'blue', lwd = 2, lty = 2)
+```
+
+## Example: Simple Linear Gaussian Model
+
+- Now, let's estimate the states with the smoothing solution
+
+\footnotesize
+```{r}
+## initialize states for kalman filter and smoother
+states.smooth <- matrix(NA, nrow = 1000, ncol = t)
+states.smooth[,1] <- x[1]
+states.smooth[1,] <- (y - beta) / alpha
+
+## 
+for (i in 2:1000){
+  for (j in 2:(t-1)){
+    states.smooth[i,j] <- rnorm(1, 
+                         mean = (phi*(A*states.smooth[i-1,j-1] + b + A*states.smooth[i-1, j+1] - A*b) + tau*(alpha*y[j] -                                  alpha*beta)) / (phi*(1 + A^2) + tau*alpha^2), 
+                         sd = sqrt(1 / (phi + tau*alpha^2 + A^2 *phi)) )
+  }
+  j = t
+  states.smooth[i,j] <- rnorm(1, 
+                              mean = (phi*(A*states.smooth[i,j-1] + b) + tau*(alpha*y[j] - alpha*beta))
+                              / (phi + tau*alpha^2), 
+                              sd = sqrt(1 / (phi + tau*alpha^2)) )
+}
+```
+
+## Example: Simple Linear Gaussian Model
+
+```{r, echo = FALSE}
+plot(x, type = 'l', lwd = 3,
+     ylim = c(min(colQuantiles(states.smooth, probs = .05))*.99, max(colQuantiles(states.smooth, probs = .95)*1.01)))
+points(colMeans(states.smooth), type = 'l', col = 'red', lwd = 2)
+points(colQuantiles(states.smooth, probs = .95), type = 'l', col = 'red', lwd = 2, lty = 2)
+points(colQuantiles(states.smooth, probs = .05), type = 'l', col = 'red', lwd = 2, lty = 2)
+```
+
+## Example: Simple Linear Gaussian Model
+
+```{r, echo = FALSE}
+plot(x, type = 'l', lwd = 3,
+     ylim = c(min(colQuantiles(states.kf, probs = .05))*.99, max(colQuantiles(states.kf, probs = .95)*1.01)))
+points(colMeans(states.kf), type = 'l', col = 'blue', lwd = 3)
+points(colQuantiles(states.kf, probs = .95), type = 'l', col = 'blue', lwd = 2, lty = 2)
+points(colQuantiles(states.kf, probs = .05), type = 'l', col = 'blue', lwd = 2, lty = 2)
+
+points(colMeans(states.smooth), type = 'l', col = 'red', lwd = 2)
+points(colQuantiles(states.smooth, probs = .95), type = 'l', col = 'red', lwd = 2, lty = 2)
+points(colQuantiles(states.smooth, probs = .05), type = 'l', col = 'red', lwd = 2, lty = 2)
+legend('topleft', legend = c('Latent States', 'Kalman Mean', 'Smoothing Mean', 'Kalman Credible', 'Smoothing Credible'),
+       col = c('black', 'blue', 'red', 'blue', 'red'), lty = c(1,1,1,2,2), lwd = 2)
+```
+
+## JAGS Refresher
+
+## JAGS Refresher
+
+- JAGS stands for Just Another Gibbs Sampler
+
+## JAGS Refresher
+
+- JAGS stands for Just Another Gibbs Sampler
+- Symbolic language makes it easily accessible
+
+## JAGS Refresher
+
+- JAGS stands for Just Another Gibbs Sampler
+- Symbolic language makes it easily accessible
+- Written in C++ with easy parallelization across chains
+
+## JAGS Refresher
+
+- JAGS stands for Just Another Gibbs Sampler
+- Symbolic language makes it easily accessible
+- Written in C++ with easy parallelization across chains
+- Does univariate Metropolis-Hastings to sample parameters (usually)
+
+## NDLMs in JAGS
+
+## NDLMs in JAGS
+
+- JAGS does quite a good job fitting NDLMs 
+
+## NDLMs in JAGS
+
+- JAGS does quite a good job fitting NDLMs 
+- The latent states have analytic Gibbs sampling updates
+
+## NDLMs in JAGS
+
+- JAGS does quite a good job fitting NDLMs 
+- The latent states have analytic Gibbs sampling updates
+- JAGS will use the same updates for the latent states that we used for the smoothing solution
+
+## Example: NDLM in JAGS
+
+Suppose that we want to fit the following NDLM in JAGS:
+
+\begin{center}
+$\begin{aligned} 
+&x_t = A x_{t-1} + b + \epsilon_{proc} \\
+&y_t = x_t + \epsilon_{obs} \\
+&A = .99, b = .5, x_1 \sim N(50, 1) \\
+&\epsilon_{proc} \sim N(0, \phi), \epsilon_{obs} \sim N(0, \tau),
+\end{aligned}$
+\end{center}
+
+where $A, b, \tau$ are all known
+
+## Example: NDLM in JAGS
+
+```{r}
+## set values for parameters
+t <- 25
+y <- x <- rep(0, t)
+A <- .99
+b <- .5
+phi <- tau <- 4
+alpha <- 1
+beta <- 0
+## set initial x, y values
+set.seed(54321)
+x[1] = 50
+y[1] = alpha*x[1] + beta + rnorm(1, 0, sqrt(1/tau))
+## generate latent states and observations
+for (i in 2:t){
+  x[i] = A*x[i-1] + b + rnorm(1, 0, sqrt(1/phi))
+  y[i] = alpha*x[i] + beta + rnorm(1, 0, sqrt(1/tau))
+}
+```
+
+## Example: NDLM in JAGS
+
+\small
+```{r, eval = FALSE}
+library(rjags)
+## sink jags model
+sink('jags_test.bug')
+cat('model {
+  for(i in 2:nday){
+    x.pred[i] = A*x[i-1] + b
+    x[i] ~ dnorm(x.pred[i], phi)
+  }
+  for(i in 1:nday){
+    y[i] ~ dnorm(x[i], 4)
+  }
+  ## Initial conditions
+  x[1] ~ dnorm(50, 1)
+
+  ## Priors on process errors
+  phi ~ dnorm(0, .01)T(0,100)
+}'
+)
+sink()
+```
+
+## Example: NDLM in JAGS
+
+\footnotesize
+```{r, results = 'hide', message = FALSE}
+library(rjags, quietly= TRUE)
+## make data list
+model_data <- list('nday' = t,
+                   'y' = y,
+                   'A' = A,
+                   'b' = b)
+## compile model
+jags_ex1 <- jags.model('jags_test.bug',
+                   data = model_data,
+                   n.chains=1,
+                   n.adapt=1000)
+## generate samples
+samples_ex1 = coda.samples(model = jags_ex1,
+                variable.names = 
+                c('phi', paste0(paste0('x[', 1:25), ']')),
+                n.iter = 20000)
+```
+
+## Example: NDLM in JAGS
+
+\small
+```{r, echo = FALSE}
+## create vectors to store posterior means and credible bounds
+means <- rep(NA, t)
+lcb <- rep(NA, t)
+ucb <- rep(NA, t)
+## turn samples into a matrix from a list
+mat_samps <- as.matrix(samples_ex1)
+for (i in 1:t){
+  ## grab column corresponding to x[i] (JAGS will place them out of order)
+  ind <- which(colnames(mat_samps) == paste0(paste0('x[', i),']'))
+  means[i] <- mean(mat_samps[,ind])
+  lcb[i] <- quantile(mat_samps[,ind], probs = .025)
+  ucb[i] <- quantile(mat_samps[,ind], probs = .975)
+}
+## plot results
+par(mfrow = c(1,1))
+plot(means, type = 'l', col = 'red', ylim = c(47, 53), lwd = 2)
+points(lcb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(ucb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(x, col = 'blue', pch = 3, lwd = 2)
+legend('topleft', legend = c('True States', 'Posterior Mean', 'Credible Bounds'), 
+       lty = c(1, 1, 2), col = c('blue', 'red', 'red'))
+```
+
+## Example: NDLMs in JAGS
+
+We can extract summary statistics in JAGS using `summary()`
+
+\footnotesize
+```{r, echo = FALSE}
+t(summary(samples_ex1)$statistics)[1:4, 1:4]
+```
+
+## Example: NDLMs in JAGS
+
+`summary()` can also be used to extract quantiles
+
+\footnotesize
+```{r, echo = FALSE}
+t(summary(samples_ex1)$quantiles)[1:5,1:5]
+```
+
+## Example: NDLMs in JAGS
+
+Trace plots and density plots allow us to visualize our posterior distributions and help to assess problems with mixing
+
+```{r, echo = FALSE}
+plot(samples_ex1[1][,1], main = 'Plots for Phi')
+```
+
+## Example: NDLMs in JAGS
+
+`effectiveSize()` in the `coda` package gives us an estimate of how many _unique_ posterior samples we have generated with our MCMC. This is an important diagnostic in State Space Models, where states can be slow to mix and highly autocorrelated.
+
+\tiny
+```{r}
+library(coda)
+effectiveSize(samples_ex1)
+```
+
+## Extension: Missing Data
+
+In the example case, we had all of our observations available. It turns out that it's simple to incorporate missing observation data into our JAGS analysis!
+
+```{r}
+## make y_miss, an example with missing observation data
+y_miss <- y
+
+## set observations 10 through 15 to be missing
+y_miss[10:15] <- NA
+```
+
+## Extension: Missing Data
+
+\footnotesize
+```{r, results = 'hide', message=FALSE}
+## make list of data with observations missing
+model_data_missing <- list('nday' = t,
+                   'y' = y_miss,
+                   'A' = A,
+                   'b' = b)
+## compile model with missing data
+jags_ex1_missing <- jags.model('jags_test.bug',
+                       data = model_data_missing,
+                       n.chains=1,
+                       n.adapt=1000)
+## generate samples
+samples_ex1_missing = coda.samples(model = jags_ex1_missing,
+                        variable.names = 
+                        c('phi', paste0(paste0('x[', 1:25), ']')),
+                        n.iter = 20000)
+```
+
+## Extension: Missing Data
+
+```{r, echo = FALSE}
+means <- rep(NA, t)
+lcb <- rep(NA, t)
+ucb <- rep(NA, t)
+mat_samps <- as.matrix(samples_ex1_missing)
+for (i in 1:t){
+  ind <- which(colnames(mat_samps) == paste0(paste0('x[', i),']'))
+  means[i] <- mean(mat_samps[,ind])
+  lcb[i] <- quantile(mat_samps[,ind], probs = .025)
+  ucb[i] <- quantile(mat_samps[,ind], probs = .975)
+}
+par(mfrow = c(1,1))
+plot(means, type = 'l', col = 'red', ylim = c(47, 53), lwd = 2)
+points(lcb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(ucb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(x, col = 'blue', pch = 3, lwd = 2)
+legend('topleft', legend = c('True States', 'Posterior Mean', 'Credible Bounds'), 
+       lty = c(1, 1, 2), col = c('blue', 'red', 'red'))
+```
+
+## Extension: Forecasting
+
+We have talked about how State Space Models are powerful tools for forecasting, but how can we forecast with them in JAGS? It turns out that we can forecast in JAGS by just tacking on `NA`s on the end of our observation list
+
+\small
+```{r}
+## add 7 days with no observations onto the end of y_miss
+y_miss <- c(y_miss, rep(NA, 7))
+
+## change nday value to reflect the 7 new days added
+t <- 32
+```
+
+## Extension: Forecasting
+
+\small
+```{r, results = 'hide', message = FALSE}
+## create mode data list with new values of t, y_miss
+model_data_forecast <- list('nday' = t,
+                           'y' = y_miss,
+                           'A' = A,
+                           'b' = b)
+## compile model for forecast
+jags_ex1_forecast <- jags.model('jags_test.bug',
+                               data = model_data_forecast,
+                               n.chains=1,
+                               n.adapt=1000)
+## generate samples
+samples_ex1_missing = coda.samples(model = jags_ex1_forecast,
+                                   variable.names = 
+                                   c('phi', paste0(paste0('x[', 1:t), ']')),
+                                   n.iter = 20000)
+```
+
+## Extension: Forecasting
+
+```{r, echo = FALSE}
+means <- rep(NA, t)
+lcb <- rep(NA, t)
+ucb <- rep(NA, t)
+mat_samps <- as.matrix(samples_ex1_missing)
+for (i in 1:t){
+  ind <- which(colnames(mat_samps) == paste0(paste0('x[', i),']'))
+  means[i] <- mean(mat_samps[,ind])
+  lcb[i] <- quantile(mat_samps[,ind], probs = .025)
+  ucb[i] <- quantile(mat_samps[,ind], probs = .975)
+}
+par(mfrow = c(1,1))
+plot(means, type = 'l', col = 'red', ylim = c(45, 55), lwd = 2)
+points(lcb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(ucb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(x, col = 'blue', pch = 3, lwd = 2)
+legend('topleft', legend = c('True States', 'Posterior Mean', 'Credible Bounds'), 
+       lty = c(1, 1, 2), col = c('blue', 'red', 'red'))
+```

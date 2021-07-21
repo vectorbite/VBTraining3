@@ -1,0 +1,693 @@
+---
+title: "Bayesian State Space Models for Time Series Data"
+author: "VectorBiTE Team"
+date: "Summer 2021"
+output:
+  html_document: default
+  pdf_document: default
+subtitle: 'Activity: Fitting SSMs in JAGS and NIMBLE'
+graphics: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(54321)
+```
+
+
+<!--NAVIGATION-->
+< | [Main Materials](https://vectorbite.github.io/VBTraining3/materials.html) | >
+
+# Introduction
+
+This section focuses on fitting state space models for time series data. It assumes that that you have watched the lectures on state space models, where you are introduced to the idea of state space models, and how to fit them in `JAGS` and `NIMBLE`. We will extend the topics covered there and use them to fit a linear and non-linear state space model to data on Dengue fever. 
+
+This section assumes that students have at least: familiarity with `R`, an understanding of the Bayesian paradigm and likelihoods, and experience using `JAGS` through the `R` package `rjags`. 
+
+Let's start by clearing our `R` workspace and loading the required packages.
+
+```{r}
+## clear workspace
+rm(list = ls())
+
+## load packages
+require(rjags)
+require(coda)
+require(matrixStats)
+```
+
+## Fitting a simple SSM in JAGS
+
+We will start by fitting a simple SSM in `JAGS` by creating and fitting simulated data. This will allow us to assess the performance of `JAGS` on our state space model! 
+
+The model that we will be fitting is given by the equations:
+
+
+$$\begin{align*}
+&x_t \sim N(A_t x_{t-1} + b_t, \phi) \\
+&y_t \sim N(\alpha_t x_t + \beta_t, \tau)
+\end{align*}$$
+
+Lets assume $A, b, \alpha, \beta, \phi, \tau$ are all known, with $A = .99, b = .5, \alpha = 1, \beta = 0, \phi = 4, \tau = 4$. Let $x_1 = 50$, and use the inital condition prior $x_1 \sim N(50, 1)$. Then, we can simulate the data and plot it in `R`.
+
+```{r}
+## set values for parameters
+t <- 25
+y <- x <- rep(0, t)
+A <- .99
+b <- .5
+phi <- tau <- 4
+alpha <- 1
+beta <- 0
+## set initial x, y values
+set.seed(54321)
+x[1] = 50
+y[1] = alpha*x[1] + beta + rnorm(1, 0, sqrt(1/tau))
+## generate latent states and observations
+for (i in 2:t){
+  x[i] = A*x[i-1] + b + rnorm(1, 0, sqrt(1/phi))
+  y[i] = alpha*x[i] + beta + rnorm(1, 0, sqrt(1/tau))
+}
+plot(x, type = 'l', xlab = 'Time', ylab = 'x')
+points(y, pch = 2, col = 'red')
+legend('topleft', legend = c('Latent States', 'Observations'), lty = c(1, NA), pch = c(NA, 2), col = c('black', 'red'))
+```
+
+Now that we have simulated data from our model, we can fit it as a state space model using `JAGS`. The first step to fitting the model in `JAGS` is to create a model file. The easiest way to do this is to use the `sink()` function in `R`. 
+
+IMPORTANT NOTE: running the `sink()` command in `Rmarkdown` may not work properly. I suggest copy and pasting the code below into your console to sink the file, otherwise you may get an error.
+
+
+```{r, eval = FALSE}
+## sink jags model
+sink('jags_test.bug')
+cat('model {
+  ## model for the latent states
+  for(i in 2:nday){
+    x.pred[i] = A*x[i-1] + b
+    x[i] ~ dnorm(x.pred[i], phi)
+  }
+  ## model for the observations
+  for(i in 1:nday){
+    y[i] ~ dnorm(x[i], tau)
+  }
+  ## Initial conditions
+  x[1] ~ dnorm(50, 1)
+
+  ## Priors on process errors
+  phi ~ dnorm(0, .01)T(0,100)
+}'
+)
+sink()
+```
+
+With the `JAGS` model ready, we now need to specify a data list and compile and run the model.
+
+```{r}
+## make data list
+model_data <- list('nday' = t,
+                   'y' = y,
+                   'A' = A,
+                   'b' = b,
+                   'tau' = tau)
+```
+
+In the data list, we need to include: the observations `y`, the number of days `t`, and the fixed parameters $A, b,$ and $\tau$. 
+
+```{r}
+## compile model
+jags_ex1 <- jags.model('jags_test.bug',
+                   data = model_data,
+                   n.chains=1,
+                   n.adapt=1000)
+```
+
+Now we can use `jags.model` to compile our model so that we can generate samples. Note that the option `n.chains = 1` can be changed to have `JAGS` run multiple chains in parallel, though for this example we will only use 1 chain.
+
+```{r}
+## generate samples
+samples_ex1 = coda.samples(model = jags_ex1,
+                variable.names = 
+                c('phi', paste0(paste0('x[', 1:25), ']')),
+                n.iter = 20000)
+```
+
+`coda.samples` generates samples from our `JAGS` model, and now we can examine the output. 
+
+We can plot our posterior samples by simply using `plot(samples_ex1)`, which will show both the traceplot and density approximation for all of the variables in our model. Be wary of using this when there are a large number of parameters, as it will take quite some time to run.
+
+```{r}
+par(mar=c(2,2,2,2))
+plot(samples_ex1)
+```
+
+`summary()` gives info on the mean, standard deviation, naive standard error, time series standard error, and quantiles of our posterior samples.
+
+```{r}
+summary(samples_ex1)
+```
+
+Since posterior samples from `JAGS` are based on a Markov Chain Monte Carlo (MCMC) algorithm, our posterior samples will be autocorrelated. The `effectiveSize()` function in the `coda` package tells us approximately how many independent samples we have generated using MCMC. This is particularly useful in SSMs because unobserved variables like our latent states may be slow to mix.
+
+```{r}
+effectiveSize(samples_ex1)
+```
+
+For our example model, however, our effective sample sizes look quite good.
+
+Finally, we can visualize how well our SSM is tracking the latent states. The code below will extract the posterior mean, 2.5% quantile, and 97.5% quantile from the chains. `JAGS` will not correctly order the latent states in the array that contains the samples, which means that we need to extract them ourselves. 
+
+```{r}
+## create vectors for means and quantiles
+means <- rep(NA, t)
+lcb <- rep(NA, t)
+ucb <- rep(NA, t)
+mat_samps <- as.matrix(samples_ex1)
+## extract means and quantiles in for loop
+for (i in 1:t){
+  ind <- which(colnames(mat_samps) == paste0(paste0('x[', i),']'))
+  means[i] <- mean(mat_samps[,ind])
+  lcb[i] <- quantile(mat_samps[,ind], probs = .025)
+  ucb[i] <- quantile(mat_samps[,ind], probs = .975)
+}
+## plot the output vs our simulated latent states
+par(mfrow = c(1,1))
+plot(means, type = 'l', col = 'red', ylim = c(47, 53), lwd = 2)
+points(lcb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(ucb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(x, col = 'blue', pch = 3, lwd = 2)
+legend('topleft', legend = c('True States', 'Posterior Mean', 'Credible Bounds'), 
+       lty = c(1, 1, 2), col = c('blue', 'red', 'red'))
+```
+
+## Example Extensions: Missing Data
+
+One of the great things about SSMs is their ability to easily handle missing $y$ observations in theory. The question is, how difficult is this to implement in practice? Well, it turns out that its quite easy for us to handle in practice using `JAGS`. We can just set missing observation values to `NA` and `JAGS` will handle the rest for us!
+
+```{r}
+## make y_miss, an example with missing observation data
+y_miss <- y
+
+## set observations 10 through 15 to be missing
+y_miss[10:15] <- NA
+```
+
+Now, we set up the model with our new $y$ data
+
+```{r}
+## make list of data with observations missing
+model_data_missing <- list('nday' = t,
+                   'y' = y_miss,
+                   'A' = A,
+                   'b' = b,
+                   'tau' = tau)
+## compile model with missing data
+jags_ex1_missing <- jags.model('jags_test.bug',
+                       data = model_data_missing,
+                       n.chains=1,
+                       n.adapt=1000)
+## generate samples
+samples_ex1_missing = coda.samples(model = jags_ex1_missing,
+                        variable.names = 
+                        c('phi', paste0(paste0('x[', 1:25), ']')),
+                        n.iter = 20000)
+```
+
+```{r}
+means <- rep(NA, t)
+lcb <- rep(NA, t)
+ucb <- rep(NA, t)
+mat_samps <- as.matrix(samples_ex1_missing)
+for (i in 1:t){
+  ind <- which(colnames(mat_samps) == paste0(paste0('x[', i),']'))
+  means[i] <- mean(mat_samps[,ind])
+  lcb[i] <- quantile(mat_samps[,ind], probs = .025)
+  ucb[i] <- quantile(mat_samps[,ind], probs = .975)
+}
+par(mfrow = c(1,1))
+plot(means, type = 'l', col = 'red', ylim = c(47, 53), lwd = 2)
+points(lcb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(ucb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(x, col = 'blue', pch = 3, lwd = 2)
+legend('topleft', legend = c('True States', 'Posterior Mean', 'Credible Bounds'), 
+       lty = c(1, 1, 2), col = c('blue', 'red', 'red'))
+```
+
+We can see that the points where our data are now missing have much higher uncertainty around them, as there are no observations available to help constrain the latent states.
+
+## Example Extensions: Forecasting
+
+State Space models also provide an excellent framework for forecasting. Similarly to how we can add `NA`'s for missing data observations, we can add `NA`'s at the end of the time series in order to have `JAGS` generate posterior estimates for latent states in the future. 
+
+Let's demonstrate this by adding 7 `NA`'s onto the end of our data.
+
+```{r}
+## add 7 days with no observations onto the end of y_miss
+y_miss <- c(y_miss, rep(NA, 7))
+
+## change nday value to reflect the 7 new days added
+t <- 32
+```
+
+Now we will run the model and look at the forecasting output.
+
+```{r, results = 'hide', message = FALSE}
+## create mode data list with new values of t, y_miss
+model_data_forecast <- list('nday' = t,
+                           'y' = y_miss,
+                           'A' = A,
+                           'b' = b,
+                           'tau' = tau)
+## compile model for forecast
+jags_ex1_forecast <- jags.model('jags_test.bug',
+                               data = model_data_forecast,
+                               n.chains=1,
+                               n.adapt=1000)
+## generate samples
+samples_ex1_forecast = coda.samples(model = jags_ex1_forecast,
+                                   variable.names = 
+                                   c('phi', paste0(paste0('x[', 1:t), ']')),
+                                   n.iter = 20000)
+## allocate space for means and quantiles
+means <- rep(NA, t)
+lcb <- rep(NA, t)
+ucb <- rep(NA, t)
+mat_samps_forecast <- as.matrix(samples_ex1_forecast)
+for (i in 1:t){
+  ind <- which(colnames(mat_samps_forecast) == paste0(paste0('x[', i),']'))
+  means[i] <- mean(mat_samps_forecast[,ind])
+  lcb[i] <- quantile(mat_samps_forecast[,ind], probs = .025)
+  ucb[i] <- quantile(mat_samps_forecast[,ind], probs = .975)
+}
+par(mfrow = c(1,1))
+plot(means, type = 'l', col = 'red', ylim = c(45, 55), lwd = 2)
+points(lcb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(ucb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(x, col = 'blue', pch = 3, lwd = 2)
+legend('topleft', legend = c('True States', 'Posterior Mean', 'Credible Bounds'), 
+       lty = c(1, 1, 2), col = c('blue', 'red', 'red'))
+```
+
+We can see that the uncertainty in our forecast for the final 7 days grows as time increases, because there are no observations available before or after to help constrain the latent states.
+
+## Guided Practice: Fitting Process Parameters in SSMs
+
+In the previous example that we walked through, the only parameters that we were fitting were the latent states $x_{1:T}$ and the precision $\phi$. We can also fit the $A$ and $b$ parameters if we are not sure of their true values. Estimating these parameters will also increase the uncertainty in our forecasts, because we are now fitting them rather than using fixed values.
+
+### Task 1
+Fit the model using the simulated data, this time estimating both $A$ and $b$. In order to do this, we will need edit the `JAGS` model code shown below. Use a $Unif(-10, 10)$ prior for $A$ and a $Unif(-5, 5)$ prior for $b$. 
+
+```{r, eval = FALSE}
+sink('jags_test.bug')
+cat('model {
+  ## model for the latent states
+  for(i in 2:nday){
+    x.pred[i] = A*x[i-1] + b
+    x[i] ~ dnorm(x.pred[i], phi)
+  }
+  ## model for the observations
+  for(i in 1:nday){
+    y[i] ~ dnorm(x[i], tau)
+  }
+  ## Initial conditions
+  x[1] ~ dnorm(50, 1)
+
+  ## Priors on process errors
+  ## Add code here!
+  phi ~ dnorm(0, .01)T(0,100)
+}'
+)
+sink()
+```
+
+We will also need to make some changes to the following block of code:
+
+```{r, eval = FALSE}
+## what changes need to be made to the data list to estimate A and b?
+model_data <- list('nday' = t,
+                   'y' = y,
+                   'A' = A,
+                   'b' = b,
+                   'tau' = tau)
+```
+
+Provide trace plots for $A$ and $b$. Are they being estimated well?
+
+We can extract just $A$ and $b$ to avoid having to plot all of our latent states by using:
+
+```{r, eval = FALSE}
+mat_samps_mymodel <- as.matrix(mymodel)
+ind_A <- which(colnames(mat_samps_mymodel) == 'A')
+ind_b <- which(colnames(mat_samps_mymodel) == 'b')
+hist(mat_samps_mymodel[,ind_A])
+hist(mat_samps_mymodel[,ind_b])
+```
+
+```{r}
+## your code here
+```
+
+### Task 2
+
+Using the model that also estimates $A$ and $b$, generate a plot that forecasts 7 days into the future. 
+
+We will need to modify the following blocks of code:
+
+```{r, eval = FALSE}
+y <- c(y, ?) ## what do we add here?)
+t <- ? ## how should we change the t?
+```
+
+How does the forecast compare to the model where we are treating $A$ and $b$ as fixed?
+
+```{r}
+## your code here
+```
+
+### Task 3
+
+The timeless classic answer to the question "how do we get better parameter estimates" is "gather more data!". To test this hypothesis, let's generate a synthetic dataset from our model with $t = 100$.
+
+```{r}
+## set values for parameters
+t <- 100
+y <- x <- rep(0, t)
+A <- .99
+b <- .5
+phi <- tau <- 4
+alpha <- 1
+beta <- 0
+## set initial x, y values
+set.seed(54321)
+x[1] = 50
+y[1] = alpha*x[1] + beta + rnorm(1, 0, sqrt(1/tau))
+```
+
+How do your estimates of $A$ and $b$ compare to the estimates from our synthetic dataset with 25 time points?
+
+```{r}
+## your code here
+```
+
+## Fitting non-linear SSMs in JAGS and NIMBLE
+
+Now that we have explored some NDLM fitting in `JAGS` using simulated data, let's do the same with a non-linear SSM. We will walk through the steps from the lecture video and use this to motivate other methods of sampling the latent states - mainly the _particle filter_
+
+The model that we will fit is given by the equations:
+
+
+$$\begin{align*}
+&x_t = \frac{x_{t-1}}{2} + 25 \frac{x_{t-1}}{1 + x_{t-1} ^2} + 8 \cos(1.2t) + \epsilon_{proc} \\
+&y_t = \frac{x_{t}^2}{20} + \epsilon_{obs} \\
+&\epsilon_{proc} \sim N(0, \phi), \epsilon_{obs} \sim N(0, \tau)
+\end{align*}$$
+
+
+This is a notoriously difficult to fit test function. When the latent states are near 0, the model may have difficult determining the sign of the latent state. This is only exacerbated by the process noise and observation noise being added on top of it. This can be seen in the plot below, which is a graph of $\frac{x_{t-1}}{2} + 25 \frac{x_{t-1}}{1 + x_{t-1} ^2}$ ranging from -10 to 10. 
+
+```{r, echo = FALSE}
+plot(seq(from = -10, to = 10, length.out = 1000), .5*seq(from = -10, to = 10, length.out = 1000) + 25 * seq(from = -10, to = 10, length.out = 1000) / (1 + seq(from = -10, to = 10, length.out = 1000)^2), type = 'l', xlab = 'x', ylab = 'f(x)')
+```
+
+We will start by fitting the model in `JAGS`. As discussed in the lectures, `JAGS` generates samples by running a brute force MCMC-MH. While this works for a great number of problems, including some SSMs, it will have difficult exploring the parameter space for problems that may have a bi-modal posterior, which is what we would expect to see from a SSM that has trouble differentiating whether the latent state is positive or negative (one mode at the negative value, one mode at the positive value). 
+
+```{r}
+set.seed(50)
+## set parameters
+t <- 15
+x <- rep(NA, t)
+phi <- 1
+tau <- 4
+x[1] <- 10
+## generate data
+for (i in 2:t){
+  x[i] <- rnorm(1, .5*x[i-1] + 25*(x[i-1]) / (1 + x[i-1]^2) 
+                + 8*cos(1.2*i), sd = 1/sqrt(phi))
+}
+y <- .05*x^2 + rnorm(t, 0, 1/sqrt(tau))
+
+plot(x, type = 'l', ylim = c(-20,35), pch = 3, lwd = 2, xlab = 'Time', ylab = 'X', col = 'blue')
+points(y, pch = 3, lwd = 3, col = 'red')
+legend('topleft', legend = c('Latent States', 'Observations'), col = c('blue', 'red'), lwd = c(2, 2), lty = c(1, NA), pch = c(NA, 3))
+```
+
+Our first step is to sink the model using the `sink()` command. I have left the lines for $f(x_t | x_{t-1})$ and $g(y_t | x_t)$ blank for you to fill in. Remember that the `sink()` command may need to be run in the console, as problems may occur from trying to do it in an `Rmarkdown` session.
+
+```{r, eval = FALSE}
+## sink the JAGS model
+sink('jags_test_ex2.bug')
+cat('model {
+  for(i in 2:nday){
+    ## add the process model here
+  }
+  for(i in 1:nday){
+    ## add the observation model here
+  }
+  ## Initial conditions
+  x[1] ~ dnorm(10, .5)
+  
+  ## Priors on process errors
+  phi ~ dnorm(0, .01)T(0,100)
+}'
+)
+sink()
+```
+
+Now that we have the model written out, we can compile it and generate samples.
+
+```{r, message = FALSE, results = 'hide'}
+## make list of model data
+model_data <- list('nday' = t,
+                   'y' = y,
+                   'tau' = tau)
+## compile model
+jags_nlssm <- jags.model('jags_test_ex2.bug',
+                       data = model_data,
+                       n.chains=1,
+                       n.adapt=1000)
+## generate samples
+samples_nlssm = coda.samples(model = jags_nlssm,
+                           variable.names = 
+                           c('phi', paste0(paste0('x[', 1:t), ']')),
+                           n.iter = 20000)
+
+```
+
+Finally, we will wrangle up the means and quantiles so that we can see how well our model fit the latent states.
+
+```{r}
+means <- rep(NA, t)
+lcb <- rep(NA, t)
+ucb <- rep(NA, t)
+mat_samps <- as.matrix(samples_nlssm)
+for (i in 1:t){
+  ind <- which(colnames(mat_samps) == paste0(paste0('x[', i),']'))
+  means[i] <- mean(mat_samps[,ind])
+  lcb[i] <- quantile(mat_samps[,ind], probs = .025)
+  ucb[i] <- quantile(mat_samps[,ind], probs = .975)
+}
+par(mfrow = c(1,1))
+plot(means, type = 'l', col = 'red', ylim = c(-20, 20), lwd = 2)
+points(lcb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(ucb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(x, col = 'blue', pch = 3, lwd = 2)
+legend('bottomleft', legend = c('True States', 'Posterior Mean', 'Credible Bounds'), 
+       lty = c(1, 1, 2), col = c('blue', 'red', 'red'))
+```
+
+As we can see from the plot, `JAGS` ended up quite far from the truth for some of the latent states. If we look at the predictions, they were roughly a factor of negative one from the true values. This indicates that `JAGS` had determining the sign of the latent states, got stuck at the wrong sign, and could never explore the parameter space enough to jump to the correct sign. 
+While `JAGS` is an incredible piece of software, it is not designed to fit SSMs, and does not contain the tools for more efficient SSM sampling.
+
+`nimbleSMC` is an `R` package with a number of Sequential Monte Carlo methods to more efficiently estimate state space models. `NIMBLE` has a similar symbolic language to `JAGS`, making it easy to create models and run them without having to worry about creating the likelihoods and implementing the samplers yourself. `NIMBLE` itself is a very extensive software with a bit more nuance than `JAGS`, and would be difficult to comprehensively cover in the time here, but in the following section we will examine how to create and run a particle filter in `NIMBLE`. For those who are interested in learning more about `NIMBLE` after this course, they have an extensive user manual available on their website with many examples. 
+
+```{r}
+require(nimble)
+require(nimbleSMC)
+```
+
+```{r}
+nimble_ssm <- nimbleCode({
+  ## initial conditions
+  x[1] ~ dnorm(10, tau = .5)
+  ## phi prior
+  phi ~ dexp(scale = 10)
+  ## latent process
+  for(i in 2:nday){
+    x[i] ~ dnorm(.5*x[i-1] + 25* (x[i-1] / (1 + x[i-1]^2)) 
+                 + 8*cos(1.2*i), tau = phi)
+  }
+  ## observation model
+  for(i in 1:nday){
+    y[i] ~ dnorm(.05*x[i]^2, tau = tau)
+  }
+})
+```
+
+We specify the `NIMBLE` model similarly to how we specify the `JAGS` model, except `NIMBLE` has the `nimbleCode` command so that we don't need to use `sink().` Specifying the model is also similar to the way we did it in `JAGS`, except that `NIMBLE` has an (optional) input for initializations, and treats data and constants differently. 
+
+```{r}
+## make data list
+data <- list(y = y)
+## set model constants
+constants <- list(nday = 15, tau = tau)
+
+## note that nimble takes a different argument for the constants 
+
+## set starting values
+inits <- list(
+  phi = 1,
+  x = sqrt(20*abs(y))
+)
+## nimble does not require that we provide initial guesses for the parameters, though it is 
+
+## compile model
+stateSpaceModel <- nimbleModel(nimble_ssm,
+                               data = data,
+                               constants = constants,
+                               inits = inits,
+                               check = FALSE)
+```
+
+The main difference in `NIMBLE` from `JAGS` is when we need to specify what sampler we would like to use. This isn't required in `JAGS` because it only uses one algorithm for fitting.
+
+```{r, , results = 'hide', message = FALSE}
+## add bootstrap filter for latent states
+bootstrapFilter <- buildBootstrapFilter(stateSpaceModel, nodes = 'x')
+## compile model to add bootstrap filter
+compiledList <- compileNimble(stateSpaceModel, bootstrapFilter)
+
+stateSpaceMCMCconf <- configureMCMC(stateSpaceModel, nodes = NULL)
+
+## add a random walk sampler for phi
+stateSpaceMCMCconf$addSampler(target = 'phi',
+                            type = 'RW_PF', 
+                            control = list(latents = 'x'))
+## re-compile to add phi sampler
+stateSpaceMCMC <- buildMCMC(stateSpaceMCMCconf)
+compiledList <- compileNimble(stateSpaceModel, 
+                              stateSpaceMCMC, 
+                              resetFunctions = TRUE)
+## generate samples
+compiledList$stateSpaceMCMC$run(10000)
+```
+
+Adding these samplers can seem daunting at first, but it is not too bad once you get some experience under your belt. In the code block above, we are telling `NIMBLE` that we want to use a bootstrap filter to sample the latent states (henst why `nodes = 'x'`), recompiling the model, and then telling `NIMBLE` that we want to use a random walk to sample $\phi$. 
+
+The output from `NIMBLE` is shown below, overlaid with the `JAGS` results
+
+```{r}
+## convert posterior to mcmc object
+posteriorSamps <- as.mcmc(as.matrix(compiledList$stateSpaceMCMC$mvSamples))
+par(mfrow = c(1,1))
+## plot JAGS results
+plot(means, type = 'l', col = 'red', ylim = c(-20, 20), lwd = 2)
+points(lcb, type = 'l', col = 'red', lty = 2, lwd = 2)
+points(ucb, type = 'l', col = 'red', lty = 2, lwd = 2)
+## plot true values
+points(x, pch = 3, lwd = 2)
+## plot the NIMBLE output
+points(colMeans(posteriorSamps[2000:10000,2:16]), col = 'blue', type = 'l', lwd = 2)
+points(colQuantiles(posteriorSamps[2000:10000,2:16], prob = .975), col = 'blue', type = 'l', lwd = 2, lty = 2)
+points(colQuantiles(posteriorSamps[2000:10000,2:16], prob = .025), col = 'blue', type = 'l', lwd = 2, lty = 2)
+legend('bottomleft', legend = c('True States', 'JAGS Mean', 'JAGS Credible', 'NIMBLE Mean', 'NIMBLE Credible'), 
+       lty = c(1, 1, 2, 1, 2), col = c('black', 'red', 'red', 'blue', 'blue'))
+```
+
+We see that the `NIMBLE` particle filter was able to successfully recover the sign of the states.
+
+Now that we have gone over an example for fitting non-linear SSMs in `JAGS` and `NIMBLE`, let's try a little practice.
+
+## Guided Practice: non-linear SSMs in JAGS and NIMBLE
+
+In this section, we will practice fitting non-linear SSMs and explore some of `NIMBLE`'s other options for particle filtering.
+
+## Task 1
+
+It doesn't always happen that `JAGS` is unable to determine the sign of the latent states. Let's try generating different synthetic data and fitting the model.
+
+```{r}
+set.seed(200)
+## set parameters
+t <- 15
+x <- rep(NA, t)
+phi <- 1
+tau <- 4
+x[1] <- 10
+## generate data
+for (i in 2:t){
+  x[i] <- rnorm(1, .5*x[i-1] + 25*(x[i-1]) / (1 + x[i-1]^2) 
+                + 8*cos(1.2*i), sd = 1/sqrt(phi))
+}
+y <- .05*x^2 + rnorm(t, 0, 1/sqrt(tau))
+
+plot(x, type = 'l', ylim = c(-20,35), pch = 3, lwd = 2, xlab = 'Time', ylab = 'X', col = 'blue')
+points(y, pch = 3, lwd = 3, col = 'red')
+legend('topleft', legend = c('Latent States', 'Observations'), col = c('blue', 'red'), lwd = c(2, 2), lty = c(1, NA), pch = c(NA, 3))
+```
+
+```{r}
+## your code for model fitting
+```
+
+How do the fits compare to the first synthetic dataset?
+
+## Task 2
+
+The bootstrap filter is not the only particle filter method implemented in `NIMBLE` (https://r-nimble.org/html_manual/cha-algos-provided.html). Let's try fitting a Liu-West filter and an auxiliary filter to our synthetic data. The code chunk that we will need to edit is given below:
+
+```{r, results = 'hide', message = FALSE, eval = FALSE}
+## add filter for latent states
+## to build a Liu-West filter, use buildLiuWestFilter
+## to build an auxiliary filter, use buildAuxiliaryFilter
+bootstrapFilter <- buildBootstrapFilter(stateSpaceModel, nodes = 'x')
+
+## remember to rename your variables to have names that are apt descriptions of what they do 
+```
+
+How do the fits from the auxiliary and Liu-West filters compare the the bootstrap filter?
+
+## Independent Practice: Fitting SSMs using Dengue Data
+
+For our final activity, we will be using the material covered here to fit two State Space models on Dengue fever data collected in San Juan, Puerto Rico. The data is available at the [vbdcast GitHub here](https://github.com/lrjohnson0/vbdcast/tree/master/data), and the dataset we will be using is called `combined_sanjuan_imputed_testing.csv`. Before we talk about the models that we want to fit, let's visualize the data.
+
+```{r}
+vbd_dengue <- read.csv('./combined_sanjuan_imputed_testing.csv')
+plot(vbd_dengue$total_cases, type = 'l')
+```
+
+This data contains information about the total number of cases reported per day over a span of 1196 days. We see from the plot that there are quite a lot of spikes, so it will be difficult for us to fit a State Space model. Instead, let's consider the following transformation:
+
+```{r}
+dengue <- (vbd_dengue$total_cases + .1^3)^(1/3)
+plot(dengue, type = 'l')
+```
+
+This cube root transformation helps to ease out the spikes, so that we can fit the models a bit better.
+
+We will consider the following models (where $d$ represents the transformed dengue data):
+
+Model 1: 
+
+$$\begin{align*}
+&x_t \sim N(x_{t-1}, \phi) \\
+&d_t \sim N(x_t , \tau)
+\end{align*}$$
+
+Model 2:
+
+$$\begin{align*}
+&x_t \sim LogNormal(\mu = \log(\frac{x_{t-1}^2}{\sqrt{x_{t-1}^2 + \frac{1}{\phi}}}), \sigma^2 = \log(1 + \frac{1}{x_{t-1}^2 \phi})) \\
+&d_t \sim LogNormal(\mu = \log(\frac{x_t^2}{x_t^2 + \frac{1}{\tau}}), \sigma^2 = \log(1 + \frac{1}{x_t^2 \tau}))
+\end{align*}$$
+
+For both models, we will use the priors $\phi \sim Exp(10)$, $x_1 \sim N(1.587, \sigma^2 = .01)$, and fix $\tau = 100$.
+
+These models are relatively simple, with Model 1 being a random walk NDLM that uses no model covariates, and Model 2 being a non-linear SSM that can be thought of as the log-normal "analog" of a random walk. 
+
+## Task 1
+
+Fit Model 1 using `JAGS` using the first 500 days of data. Generate a forecast for the next 10 days. How do these forecasts compare with the real data?
+
+## Task 2
+
+Fit Model 2 using `NIMBLE` using the first 500 days of data. Generate a forecast for the next 10 days. How do these forecasts compare with the real data? If `NIMBLE` is taking too long to run, you may instead try using the first 100 days of data.

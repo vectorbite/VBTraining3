@@ -1,0 +1,16 @@
+model {
+  ## model for the latent states
+  for(i in 2:nday){
+    x.pred[i] = A*x[i-1] + b
+    x[i] ~ dnorm(x.pred[i], phi)
+  }
+  ## model for the observations
+  for(i in 1:nday){
+    y[i] ~ dnorm(x[i], tau)
+  }
+  ## Initial conditions
+  x[1] ~ dnorm(50, 1)
+
+  ## Priors on process errors
+  phi ~ dnorm(0, .01)T(0,100)
+}
