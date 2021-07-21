@@ -1,0 +1,14 @@
+model {
+  for(i in 2:nday){
+    x.pred[i] = .5*x[i-1] + 25*(x[i-1]) / (1 + x[i-1]^2) + 8*cos(1.2*i)
+    x[i] ~ dnorm(x.pred[i], phi)
+  }
+  for(i in 1:nday){
+    y[i] ~ dnorm(.05*x[i]^2, tau)
+  }
+  ## Initial conditions
+  x[1] ~ dnorm(10, .5)
+  
+  ## Priors on process errors
+  phi ~ dnorm(0, .01)T(0,100)
+}
