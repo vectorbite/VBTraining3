@@ -40,7 +40,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 4. Inculcate the coding Jedi inside of you - or the Sith - whatever works.
 
 
-# Introduction to the VectorByte databases
+# Introduction to the VectorByte databases^[What is the difference between VectorBiTE and VectorByte? We are glad you asked! [VectorBiTE](http://vectorbite.org/) is an RCN or a research coordination network funded by a 5 year grant from the BBSRC. VectorBiTE is hosting this training as it transitions into [VectorByte](https://www.vectorbyte.org/) which is a newly funded NSF grant to establish a global open access data platform to study disease vectors. All the databases are transitioning to VectorByte but the legacy options will still be available on the VectorByte website.]
 
 - This component will be delivered live & synchronously (with a recording to be uploaded later)
 
@@ -91,3 +91,5 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Introduction to Bayesian State-Space models for Temporal Data
 - [Here there be dragons](https://www.youtube.com/watch?v=iik25wqIuFo)
+
+
