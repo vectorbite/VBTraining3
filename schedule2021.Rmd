@@ -1,6 +1,6 @@
 ---
 title: "2021 Training Schedule"
-description: "Schedule for synchronous training and suggestions for assynchronous study. TIMES ARE TENTATIVE."
+description: "Schedule for synchronous training and suggestions for assynchronous study"
 output: 
   distill::distill_article:
     toc: true
@@ -11,10 +11,20 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 # Pre-workshop
+We will be using [R](https://cran.r-project.org/) for all data manipulation and analyses/model fitting. Any operating system (Windows, Mac, Linux) will do, as long as you have R (version 3.6 or higher) installed.
 
-Before the workshop we have a number of suggested and required tasks for you to complete. These are enumerated HERE (coming soon). 
+You may use any IDE/ GUI for R (VScode, RStudio, Emacs, etc). For most people, [RStudio](https://www.rstudio.com/) is a good option. Whichever one you decide to use, please make sure it is installed and test it before the workshop. We will have a channel on slack dedicated to software/hardware issues and troubleshooting.
 
-Once you have completed the pre-work and set-up tasks, you should get yourself familiar with the [VectorBiTE Training materials](materials.html). You will choose a starting point based on your previous experience. Much of the synchronous time is planned to be dedicated to helping you work through exercises and activities. Thus you'll want to watch the videos and take a look at the slides off line (likely starting earlier in the week for most participants). The small subset of live instruction portions is elaborated below.
+We will also be using Zoom and Slack to facilitate the synchronous portions of the training. Please have these installed in advance. We are assuming familiarity with R basics. In addition, we recommend that you do the following:
+
+1. Go to [The Multilingual Quantitative Biologist](https://mhasoba.github.io/TheMulQuaBio/intro.html), and read+work through the [Biological Computing in R Chapter](https://mhasoba.github.io/TheMulQuaBio/notebooks/07-R.html) up to the section on Writing R code. Of course, keep going if you want (although we will cover some similar materials here).
+
+
+2. Review background on [introductory probability and statistics](activities/Stats_review.html) ([solutions to exercises](activities/Stats_review_soln.html)) 
+
+Once you have completed the pre-work and set-up tasks, you should get yourself familiar with the [VectorBiTE Training materials](materials.html). You will choose a starting point based on your previous experience. This will be in the form of slack channels labeled based on interest. From there you will group yourself (based on whatever you like, but keep in mind timezones and language preferences) and a demonstrator will be matched with your group.
+
+Much of the synchronous time is planned to be dedicated to helping you work through exercises and activities. Thus you'll want to watch the videos and take a look at the slides off line (likely starting earlier in the week for most participants). The small subset of live instruction portions is elaborated below.
 
 <br>
 <br>
@@ -33,7 +43,9 @@ Once you have completed the pre-work and set-up tasks, you should get yourself f
 
 # 29 July 2021 (9:30am - 1:00pm US EST)
 
-
+| Time     | Activity             | Materials                |
+| -------  | -------------------- | ------------------------ |
+| 10:00am  | Synchronous Session  |                          |
 
 <br>
 <br>
@@ -41,13 +53,16 @@ Once you have completed the pre-work and set-up tasks, you should get yourself f
 
 # 30 July 2021 (9:30am - 1:00pm US EST)
 
+| Time     | Activity             | Materials                |
+| -------  | -------------------- | ------------------------ |
+| 10:00am  | Synchronous Session  |                          |
 
 <br>
 <br>
 <br>
 
 # Post-workshop
-
+Enjoy using these new techniques and databases!
 
 <br>
 <br>
