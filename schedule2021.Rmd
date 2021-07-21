@@ -22,7 +22,7 @@ We will also be using Zoom and Slack to facilitate the synchronous portions of t
 
 2. Review background on [introductory probability and statistics](activities/Stats_review.html) ([solutions to exercises](activities/Stats_review_soln.html)) 
 
-Once you have completed the pre-work and set-up tasks, you should get yourself familiar with the [VectorBiTE Training materials](materials.html). You will choose a starting point based on your previous experience. This will be in the form of slack channels labeled based on interest. From there you will group yourself (based on whatever you like, but keep in mind timezones and language preferences) and a demonstrator will be matched with your group.
+Once you have completed the pre-work and set-up tasks, you should get yourself familiar with the [VectorBiTE Training materials](materials.html). You will choose a starting point based on your previous experience. This will be in the form of slack channels labeled based on interest. From there you will group yourself (based on whatever you like, but keep in mind time zones and language preferences) and a demonstrator will be matched with your group.
 
 Much of the synchronous time is planned to be dedicated to helping you work through exercises and activities. Thus you'll want to watch the videos and take a look at the slides off line (likely starting earlier in the week for most participants). The small subset of live instruction portions is elaborated below.
 
