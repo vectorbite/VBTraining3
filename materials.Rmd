@@ -67,12 +67,12 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Simple Models for Temporal Data (based on Linear Models)
 
-- [Lecture slides](lectures/VB_TS.pdf),  [Lecture video](https://www.youtube.com/watch?v=CIAoauEoTTo&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=5), [Practical](activities/VB_TimeSeries.html), [Airline "solution"](activities/VB_TS_exercise_soln.html) 
+- [Lecture Slides](lectures/VB_TS.pdf),  [Lecture Video](https://www.youtube.com/watch?v=CIAoauEoTTo&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=5), [Practical](activities/VB_TimeSeries.html), [Airline "solution"](activities/VB_TS_exercise_soln.html) 
 
 
 ### Review of Likelihoods 
 
-- [Lecture slides](lectures/VB_likelihood.pdf),  [Lecture video](https://www.youtube.com/watch?v=MQOI91UMDX4&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=7), [Practical](activities/VB_likelihood_activity.html) 
+- [Lecture Slides](lectures/VB_likelihood.pdf),  [Lecture Video](https://www.youtube.com/watch?v=MQOI91UMDX4&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=7), [Practical](activities/VB_likelihood_activity.html) 
 
 <br>
 <br>
@@ -81,15 +81,15 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Bayesian Basics 
 
-- [Lecture slides](lectures/VB_Bayes1.pdf),  [Lecture video](https://www.youtube.com/watch?v=sVtaTTIZEa4&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=4), [Analytic Practical](activities/VB_Bayes_activity1.html) 
+- [Lecture Slides](lectures/VB_Bayes1.pdf),  [Lecture Video](https://www.youtube.com/watch?v=sVtaTTIZEa4&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=4), [Analytic Practical](activities/VB_Bayes_activity1.html) 
 
 
 ### Fitting Bayesian Models Using JAGS
 
-- [Lecture slides](lectures/VB_Bayes2.pdf),  [Lecture video](https://www.youtube.com/watch?v=q3FrMb_iQww&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=6), [Computational Practical](activities/VB_Bayes_activity2.html) 
+- [Lecture Slides](lectures/VB_Bayes2.pdf),  [Lecture Video](https://www.youtube.com/watch?v=q3FrMb_iQww&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=6), [Computational Practical](activities/VB_Bayes_activity2.html) 
 
 
 ### Introduction to Bayesian State-Space models for Temporal Data
-- [Lecture slides 1](lectures/vb_state_space1.pdf), [Lecture slides 2](lectures/vb_state_space2.pdf), [Lecture slides 3](lectures/vb_state_space3.pdf), [Lecture video 1](https://www.youtube.com/watch?v=-hvOaRwf6Mw), [Lecture video 2](https://www.youtube.com/watch?v=d_gegj-Cc4I), [Lecture video 3](https://www.youtube.com/watch?v=jHzwODN7E34), [Modeling Activity](activities/SSM_activity.html)
+- [Lecture Slides 1](lectures/vb_state_space1.pdf), [Lecture Slides 2](lectures/vb_state_space2.pdf), [Lecture Slides 3](lectures/vb_state_space3.pdf), [Lecture Video 1](https://www.youtube.com/watch?v=-hvOaRwf6Mw), [Lecture Video 2](https://www.youtube.com/watch?v=d_gegj-Cc4I), [Lecture Video 3](https://www.youtube.com/watch?v=jHzwODN7E34), [Modeling Activity](activities/SSM_activity.html)
 
 
