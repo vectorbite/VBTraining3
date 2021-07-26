@@ -1590,5 +1590,5 @@ When you have got your final model, save the model as an R data file: `save(mode
 
 # Group project
 
-## Select a focal species from a choice of three datasets that contain values on trait-temperature relationships. Develop a hypothesis and explore the hypothesis using a linear model. Assess your model fit and assumptions.
+## Explore the dataset `lmdataset.csv` that contains values on trait-temperature relationships. Develop a hypothesis and explore the hypothesis using a linear model. Assess your model fit and assumptions.
 
