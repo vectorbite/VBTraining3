@@ -1002,7 +1002,7 @@ ggplot(a_preds) +
   theme_bw() +
   theme(legend.position = 'none') +
   scale_color_brewer(type = 'qual', palette = 2) +
-  labs(x = 'Temperature (?C)',
+  labs(x = 'Temperature (°C)',
        y = 'rate',
        title = 'Dev rate thermal performance curves')+
   theme_bw(base_size = 10)+

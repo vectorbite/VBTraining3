@@ -142,7 +142,7 @@ where,
 
 * $x_i, y_i$ are the individual sample points indexed with $i$ ($i = 1,2,\ldots, n$)
 
-*  $\bar{x} = \frac{\sum_{i=1}^n x_i}{n} $ is the the sample mean.
+*  $ \bar{x} = \frac{\sum_{i=1}^n x_i}{n} $ is the the sample mean.
 
 * $ s_x = \sqrt{ {\frac{\sum_{i=1}^n(x_i - \bar{x})^2}{n-1}}}$ (sample standard deviation)
 
@@ -829,7 +829,7 @@ $$\frac{(\mathrm{Observed} - \mathrm{Expected})^2}{\mathrm{Expected}}$$
 
 across all the cells/categories in the table (so the sum would be over 6 categories in our current wing length example).
 
-"Observed" is the observed proportion of data that fall in a certain category. For example, at 22oC there are 23 individuals observed in the `food level`, `0.1` category, and 35 in the `food level`, `1` category.
+"Observed" is the observed proportion of data that fall in a certain category. For example, at 22°C there are 23 individuals observed in the `food level`, `0.1` category, and 35 in the `food level`, `1` category.
 
 "Expected" is what count would be expected if the values in each category were truly independent. Each cell has its own expected value, which is simply calculated as the count one would expect in each category if the value were generated in proportion to the total number seen in that category. So in our example, the expected value for the `food level`, `0.1` category would be 
 
@@ -1081,13 +1081,13 @@ summary(model)
 
 Starting at the bottom of this output, `summary` has again calculated $r^2$ for us and also an $F$ statistic for the whole model, which matches the calculation above.
 
-The other important bits are the four coefficients. The intercept is now the reference level for two variables: it is the mean for individuals that were reared at 22oC with low food supply (0.1 mg day^-1). We then have differences from this value for individuals reared at the other temperatures. There is a big change in wing length associated with increased temperature and food level and both of these have large effects sizes. Increasing temperature from 22oC to 32oC introduced about a 20% difference in wing length. Increased food at 22oC increased wing by ~20%. 
+The other important bits are the four coefficients. The intercept is now the reference level for two variables: it is the mean for individuals that were reared at 22°C with low food supply (0.1 mg day^-1). We then have differences from this value for individuals reared at the other temperatures. There is a big change in wing length associated with increased temperature and food level and both of these have large effects sizes. Increasing temperature from 22°C to 32°C introduced about a 20% difference in wing length. Increased food at 22°C increased wing by ~20%. 
 
 Because the difference is large and the standard error is small, the $t$ value suggests that this difference did not arise just by chance. Put another way, it is significant.
 
 The table below shows how these four coefficients combine to give the predicted values for each of the group means.
 
-|  |22oC|26oC|32oC|
+|  |22°C|26°C|32°C|
 |:-|:---|:---|:---|
 |**low food** | *0.98* = 0.98 | *0.98 - 0.07* = 0.91    | *0.98 - 0.18* = 0.70 |
 |**high food**|  *0.98 + 0.17* = 1.15    | *0.98  - 0.07 + 0.17* =1.08   | *0.98 - 0.18 + 0.17* = 0.97|
@@ -1139,7 +1139,7 @@ $\star$ Create a new blank script called 'Interactions.R' and add some introduct
 
 $\star$ Read in the data:
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 read.csv('../data/traitdata_Huxleyetal_2021.csv',stringsAsFactors = TRUE)
 ```
 
@@ -1177,10 +1177,10 @@ summary(model)
 
 The lines in this output are:
 
-1. The reference level (intercept) for low-food at 22oC. (The reference level is decided just by  alphabetic/numeric order of the levels)
+1. The reference level (intercept) for low-food at 22°C. (The reference level is decided just by  alphabetic/numeric order of the levels)
 2. Two differences for being in different food levels.
-3. One difference for being high-food at 22oC.
-4. Two new differences that give specific differences for high-food at 26 and 32oC.
+3. One difference for being high-food at 22°C.
+4. Two new differences that give specific differences for high-food at 26 and 32°C.
 
 The first four lines, as in the model from the ANOVA section, which would allow us to find the predicted values for each group *if the size of the differences did not vary between levels because of the interactions*. That is, this part of the model only includes a single difference low-food and high-food, which has to be the same for each temperature because it ignores interactions between temperature and low- / high-food identity of each treatment. The last two lines then give the estimated coefficients associated with the interaction terms, and allow cause the size of differences to vary
 between levels because of the further effects of interactions.
@@ -1189,9 +1189,9 @@ The table below show how these combine to give the predictions for each group co
 
 | |**low food** |  **high food** |
 |:- |:- |:-|
-|**22oC** | 0.97 = 0.97        | 0.97 + 0.17 = 1.14 |
-|**26oC** | 0.97 - 0.08 = 0.89 | 0.97 - 0.08 + 0.17<span style="color:red"> + 0.01</span> = 1.07|
-|**32oC** | 0.97 - 0.15 = 0.82 | 0.97 - 0.15 + 0.17<span style="color:red"> - 0.04</span> = 0.95|
+|**22°C** | 0.97 = 0.97        | 0.97 + 0.17 = 1.14 |
+|**26°C** | 0.97 - 0.08 = 0.89 | 0.97 - 0.08 + 0.17<span style="color:red"> + 0.01</span> = 1.07|
+|**32°C** | 0.97 - 0.15 = 0.82 | 0.97 - 0.15 + 0.17<span style="color:red"> - 0.04</span> = 0.95|
 
 So why are there two new coefficients? For interactions between two factors, there are always $(n-1)\times(m-1)$ new coefficients, where $n$ and $m$ are the number of levels in the two factors (low- or high-food: 2 levels and temperature: 3 levels, in our current example). So in this model, $(3-1) \times (2-1) =2$. It might be easier to understand why graphically: 
 
@@ -1590,5 +1590,5 @@ When you have got your final model, save the model as an R data file: `save(mode
 
 # Group project
 
-## Explore the dataset `lmdataset.csv` that contains values on trait-temperature relationships. Develop a hypothesis and explore the hypothesis using a linear model. Assess your model fit and assumptions.
+## Explore the dataset `lmdataset.csv` thatcontains values on trait-temperature relationships in three important vector/pest species. Develop a hypothesis and explore it using linear models. Assess your model’s fit and assumptions.
 
