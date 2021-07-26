@@ -1590,5 +1590,5 @@ When you have got your final model, save the model as an R data file: `save(mode
 
 # Group project
 
-## Explore the dataset `lmdataset.csv` thatcontains values on trait-temperature relationships in three important vector/pest species. Develop a hypothesis and explore it using linear models. Assess your model’s fit and assumptions.
+## Explore the dataset `lmdataset.csv` that contains values on trait-temperature relationships in three important vector/pest species. Develop a hypothesis and explore it using linear models. Assess your model’s fit and assumptions.
 
