@@ -16,28 +16,22 @@ graphics: yes
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
+We will use the following packages:
 ```{r, eval=FALSE}
 # remotes::install_github("padpadpadpad/rTPC") ## to install rTPC
 ```
 
+
 ```{r, message=FALSE}
-require("tidyverse")
 require('rTPC')
 require('minpack.lm')
 require('nls.multstart')
-require('ggplot2')
-require('nls.multstart')
 require('broom')
 require('tidyverse')
-require('rTPC')
 require('data.table')
 require('car')
 require('boot')
 require('patchwork')
-require('minpack.lm')
-require("tidyr")
-require('purrr')
 ```
 
 
@@ -171,7 +165,7 @@ This looks a lot like the output of a linear model, and to be specific, of a Lin
 
 So here are the main things to note about the output of `summary()` of an `nls()` model object:
 
-* `Estimate`s are, as in the output of the `lm()` function for fitting linear models, the estimated values of the coefficients of the model that you fitted ($V_(\max)$ and $K_M$). Note that although we generated our data using $V_{\max} = 12.5$ and $K_M = 7.1$, the actual coefficients are quite different from what we are getting with the NLLS fitting ($\hat{V_{\max} = 13.5$ and $\hat{K}_M = 9.4$). This is because we introduced random (normally-distributed) errors. This tell you something about how experimental and/or measurement errors can distort your image of the underlying mechanism or process.   
+* `Estimate`s are, as in the output of the `lm()` function for fitting linear models, the estimated values of the coefficients of the model that you fitted ($V_(\max)$ and $K_M$). Note that although we generated our data using $V_{\max} = 12.5$ and $K_M = 7.1$, the actual coefficients are quite different from what we are getting with the NLLS fitting ( $\hat{V_{\max} = 13.5$ and $\hat{K}_M = 9.4$). This is because we introduced random (normally-distributed) errors. This tell you something about how experimental and/or measurement errors can distort your image of the underlying mechanism or process.   
 * `Std. Error`, `t value`, and `Pr(>|t|)` and `Residual standard error` have the same interpretation as in the output of `lm()` (please look back at the Linear Regression section)
 * `Number of iterations to convergence` tells you how many times the NLLS algorithm had to adjust the parameter values till it managed to find a solution that minimizes the Residual Sum of Squares (RSS)
 * `Achieved convergence tolerance` tells you on what basis the algorithm decided that it was close enough to the a solution; basically if the RSS does not improve more than a certain threshold despite parameter adjustments, the algorithm stops searching. This may or may not be close to an optimal solution (but in this case it is).
@@ -298,17 +292,10 @@ One solution to this is to use a different algorithm than Gauss-Newton. `nls()` 
 
 To be able to use nlsLM, we will need to switch to a different NLLS function called `nlsLM`. In order to be able to use `nlsLM`, you will need the `nls.lm` R package, which you can install using the method appropriate for your operating system  (e.g., linux users will launch R in `sudo` mode first) and then use:
 
-```r
-> install.packages("minpack.lm") 
-```
 
-Now load the `minpack.lm` package:
+Now let's use the `minpack.lm` package:
 
-```{r}
-require("minpack.lm")
-```
-
-Now let's try it (using the same starting values as `MM_model2` above):
+Let's try it (using the same starting values as `MM_model2` above):
 
 ```{r}
 MM_model5 <- nlsLM(V_data ~ V_max * S_data / (K_M + S_data), start = list(V_max = 2, K_M = 2))
@@ -447,15 +434,11 @@ ggplot(data, aes(x = Time, y = N)) +
 
 The size of an exponentially growing population ($N$) at any given time ($t$) is given by:
 
-$
-N(t) = N_0 e^{rt} ,
-$
+$ N(t) = N_0 e^{rt}$
 
 where $N_0$ is the initial population size and $r$ is the growth rate. We can re-arrange this to give:
 
-$
-r = \frac{\log(N(t)) - \log(N_0)}{t} ,
-$
+$r = \frac{\log(N(t)) - \log(N_0)}{t}$
 
 That is, in exponential growth at a constant rate, the growth rate can be simply calculated as the difference in the log of two population sizes, over time. We will log-transform the data and estimate by eye where growth looks exponential.
 
@@ -511,11 +494,7 @@ $$
 N_t = \frac{N_0 K e^{r t}}{K + N_0 (e^{r t} - 1)}
 $$
 
-Here $N_t$ is population size at time $t$, $N_0$ is initial population size, $r$ is maximum growth rate (AKA $r_\text{max}$), and $K$ is carrying capacity (maximum possible abundance of the population). Note that this model is actually the solution to the differential equation that defines the classic logistic population growth model (eqn. {eq}`eq:logist_growth`). 
-
-```{note}
-The derivation of eqn. {eq}`eq:logist_growth_sol` is covered [here](Logistic-Population-Growth). But you don't need to know the derivation to fit eqn. {eq}`eq:logist_growth_sol` to data. 
-```
+Here $N_t$ is population size at time $t$, $N_0$ is initial population size, $r$ is maximum growth rate (AKA $r_\text{max}$), and $K$ is carrying capacity (maximum possible abundance of the population). Note that this model is actually the solution to the differential equation that defines the classic logistic population growth model. 
 
 Let's fit it to the data. First, we need to define it as a function object:
 
@@ -751,7 +730,7 @@ The bounds are typically fixed for each parameter of a model *at the level of th
 However, as we saw in the Michaelis-Menten model fitting example, bounding the parameters too much (excessively narrow ranges) can result in poor solutions because the algorithm cannot explore sufficient parameter space.   
 
 ```{tip}
-The values of the parameter bounds you choose, of course, may depend on the *units of measurement* of the data. For example, in [SI](https://en.wikipedia.org/wiki/International_System_of_Units), growth rates in the Logistic or Gompertz models would be in units of s$^{-1}$).
+The values of the parameter bounds you choose, of course, may depend on the *units of measurement* of the data. For example, in [SI](https://en.wikipedia.org/wiki/International_System_of_Units), growth rates in the Logistic or Gompertz models would be in units of 1/X).
 ```
 Irrespective of which computer language the NLLS fitting algorithm is implemented in (`nlsLM`  in R or `lmfit` in Python), the fitting command/method will have options for setting the parameter bounds. In particular,
 
@@ -769,7 +748,13 @@ rm(list=ls())
 graphics.off()
 ```
 
-Now that we have the background requirements going, we can start using the rTPC package. Lets look through the different models available!
+Now that we have the background requirements going, we can start using the rTPC package (keep in mind in order to load the rTPC package you will need to use:
+
+```{r, eval=FALSE}
+# remotes::install_github("padpadpadpad/rTPC") ## to install rTPC
+```
+
+Lets look through the different models available!
 
 ```{r}
 #take a look at the different models available
@@ -933,9 +918,9 @@ Lets look at a second example:
 
 # Example: Aedes aegypti Juvenile Mortality Rate
 
-Juvenile mortality rate and juvenile development rate are together the most important traits for population growth (rm). [Huxley et al. 2021](https://royalsocietypublishing.org/doi/full/10.1098/rspb.2020.3217?casa_token=eG00HSjUNDAAAAAA%3Ah2_CuvKoI8WFiBCT3J9bZ6PnkgN-jLnwZnmIbsNY_hSozTS54_4UhFzuSMKeO_xDySM57S3CuJZJwQ) shows and explains this through sensitivity analysis. [Cator et al (2020)](https://www.frontiersin.org/articles/10.3389/fevo.2020.00189/full) sensitivity analysis (numerical and analytical) of the Euler-Lotka model shows this also. Thermal optima is a good measure of these traits so lets find it for Aedes aegypti juvenile mortality.
+Juvenile mortality and development are important traits for population growth ($r_{max}$), particularly in organisms with complex life histories, such as arthropods([Cator et al (2020)](https://www.frontiersin.org/articles/10.3389/fevo.2020.00189/full); [Huxley et al. 2021](https://royalsocietypublishing.org/doi/full/10.1098/rspb.2020.3217?casa_token=eG00HSjUNDAAAAAA%3Ah2_CuvKoI8WFiBCT3J9bZ6PnkgN-jLnwZnmIbsNY_hSozTS54_4UhFzuSMKeO_xDySM57S3CuJZJwQ)). The thermal optima of these functional traits can provide important insights into the suitability of environmental conditions for a species’ establishment and persistence. This information is particularly important when predicting environmental suitability for the establishment of disease vectors, such as $Aedes$ $aegypti$. 
 
-We will look at a select set of data from VectorBiTE prefiltered for this example: `juvenilemortalityrateae.csv`.
+For this example, we will use a dataset from VectorBiTE `juvenilemortalityrateae.csv`.
 
 Lets start by loading the dataset and getting set up.
 
@@ -947,7 +932,7 @@ ae.ae <- read.csv('../data/juvenilemortalityrateae.csv')
 
 We will need to manipulate this one a bit to get at the data we want.
 
-Lets boil it down to just Aedes aegypti with the clean data and specifically the juvenile mortality rate.
+Let’s subset the data by filtering by trait:
 
 ```{r}
 ae.zj <- ae.ae %>% filter(standardisedtraitname == "Juvenile Mortality Rate")
@@ -1024,7 +1009,7 @@ ggplot(a_preds) +
   theme(legend.position = "none")
 ```
 
-Looking good! Now lets bootstrap it and get some confidence intervals (so we know we are doing real science).
+Looking good! Now let’s use the model to generate 95% confidence bounds for the model predictions.
 
 ```{r}
 fit_nlsLM2 <- minpack.lm::nlsLM(rate~pawar_2018(temp = temp, r_tref,e,eh,topt, tref = 15),
@@ -1063,7 +1048,7 @@ ggplot() +
   geom_ribbon(aes(temp, ymin = conf_lower, ymax = conf_upper), boot2_conf_preds, fill = 'blue', alpha = 0.3) +
   geom_point(aes(temp, rate), ae.zj, size = 2, alpha = 0.5) +
   theme_bw(base_size = 12) +
-  labs(x = 'Temperature (?C)',
+  labs(x = 'Temperature (°C)',
        y = '1/zj')
 ```
 
@@ -1097,7 +1082,7 @@ topt2 <- as_tibble(ci_extra_params2[2,])
 topt2$species <- as.character("Aedes aegypti")
 ```
 
-Fingers crossed, lets look at our results!
+Let's look at the results!
 
 ```{r}
 ggplot(topt2, aes(estimate, species)) +
@@ -1110,7 +1095,7 @@ ggplot(topt2, aes(estimate, species)) +
   theme(axis.title.y = element_blank())
 ```
 
-This looks good, we have confidence intervals and a specific optima! We can now do this for every species and every trait on the planet and call it quits for thermal optima modelling.
+This looks good, we have now have the estimated thermal optimum for juvenile mortality rate with 95% confidence bounds! In other words, our model predicts that juvenile survival in $Ae.$ $aegypti$ is highest when environmental temperatures range between 12°C and 16°C.
 
 Please see Daniel Padfields [git](https://padpadpadpad.github.io/rTPC/articles/rTPC.html) for more information on using the rTPC package.
 
@@ -1128,5 +1113,5 @@ Please see Daniel Padfields [git](https://padpadpadpad.github.io/rTPC/articles/r
     * The original paper: <http://dx.doi.org/10.18637/jss.v066.i05>
 
 # Practice Problem for NLLS
-## Select a focal species from ` nllsdataset.csv` data on trait-temperature relationships. Fit thermal performance curves to trait(s) of interest. Use bootstrapping to generate confidence bounds for each curve.
+### The `nllsdataset.csv` dataset contains values on trait-temperature relationships in three important vector/pest species. Fit thermal performance curves to trait(s) of interest. Use bootstrapping to generate confidence bounds for each curve.
 
