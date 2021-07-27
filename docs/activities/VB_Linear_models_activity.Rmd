@@ -900,7 +900,12 @@ wings <- wings %>%
   mutate(loglength = log(length_mm))
 wings <- subset(wings, select = c(temp, food_level, loglength)) 
 wings <- na.omit(wings)
+wings$temp <- as.factor(wings$temp)
+wings$food_level <- as.factor(wings$food_level)
 str(wings)
+```
+```{tip}
+Remember that lattice, like base R, will automatically plot boxplots when the explanatory variables of interest are defined as factors.
 ```
 
 ### Boxplots within groups
@@ -937,7 +942,7 @@ Try reshaping the R plot window and running the command again. Lattice tries to 
 
 ### Barplots again
 
-We're going to make the barplot code from the regression section even more complicated! This time we want to know the mean log genome size within combinations of `temp` and `food_level`. We can still use `tapply`, providing more than one grouping factor. We create a set of grouping factors like this:
+We're going to make the barplot code from the regression section even more complicated! This time we want to know the mean log wing length within combinations of `temp` and `food_level`. We can still use `tapply`, providing more than one grouping factor. We create a set of grouping factors like this:
 
 ```{r}
 groups     <- list(wings$temp, wings$food_level)

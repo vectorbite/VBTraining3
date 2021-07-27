@@ -1246,7 +1246,7 @@ lines(density(Anisoptera$GenomeSize), col='red')
 Duplicate these last two lines of code and edit them to generate a similar plot for total body length. You will need to edit the code to change the range of the $x$ and $y$ axes (`xlim` and `ylim`) to get both curves to fit neatly on to the graph. It should look like this:
 
 ---
-<img src="../graphics/densTL.png" width="300px">
+<img src="../graphics/densTL.png" width="600px">
 
 ---
 
@@ -1339,5 +1339,4 @@ After you have performed your data exploration, you are in a position to make an
 
 # Practice Problem for Data Wrangling
 
-## Organise (or wrangle!) the data, as you learned in the lesson. The dataset provided `wranglingdataset.csv` contains values on trait-temperature relationships. Select a focal species from this dataset. Use your species-specific subset to develop a hypothesis and explore it. Present your group's findings using descriptive statistics and visualizations.
-
+### Organise (or wrangle!) the data, as you learned in the lesson. The dataset provided `wranglingdataset.csv` contains values on trait-temperature relationships in three important vector/pest species. Develop a hypothesis (or a question) related to how you expect a trait(s) responds to temperature and explore it. Present your group’s findings using descriptive statistics and visualizations.
