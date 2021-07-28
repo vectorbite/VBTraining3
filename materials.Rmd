@@ -86,7 +86,7 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Fitting Bayesian Models Using JAGS
 
-- [Lecture Slides](lectures/VB_Bayes2.pdf),  [Lecture Video](https://www.youtube.com/watch?v=q3FrMb_iQww&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=6), [Computational Practical](activities/VB_Bayes_activity2.html) 
+- [Lecture Slides](lectures/VB_Bayes2.pdf),  [Lecture Video](https://www.youtube.com/watch?v=mQQV0Isn_lY&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=11), [Computational Practical](activities/VB_Bayes_activity2.html) 
 
 
 ### Introduction to Bayesian State-Space models for Temporal Data
