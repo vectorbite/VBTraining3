@@ -82,11 +82,16 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 ### Bayesian Basics 
 
 - [Lecture Slides](lectures/VB_Bayes1.pdf),  [Lecture Video](https://www.youtube.com/watch?v=sVtaTTIZEa4&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=4), [Analytic Practical](activities/VB_Bayes_activity1.html) 
+- Datasets:
+    - [Midge Length Data](data/MidgeWingLength.csv)
 
 
 ### Fitting Bayesian Models Using JAGS
 
 - [Lecture Slides](lectures/VB_Bayes2.pdf),  [Lecture Video](https://www.youtube.com/watch?v=mQQV0Isn_lY&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=11), [Computational Practical](activities/VB_Bayes_activity2.html) 
+- Datasets:
+    - [Midge Length Data](data/MidgeWingLength.csv)
+    - [Aedes Trait Data](data/AeaegyptiTraitData.csv)
 
 
 ### Introduction to Bayesian State-Space models for Temporal Data
