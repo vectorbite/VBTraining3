@@ -49,13 +49,21 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 ### Data Wrangling in R
 
 - [Self-Guided Activity](activities/VB_Datawrangling_exp_design.html)
+- Datasets:
+    - [Poundhill Data](data/PoundHillData.csv)
+    - [Poundhill Meta Data](data/PoundHillMetaData.csv)
+    - [Huxley et al Trait Data](data/traitdata_Huxleyetal_2021.csv)
+    - [Genome Size](data/GenomeSize.csv)
+    - [Wrangling Practical Data](data/wranglingdataset.csv)
 
 ### Introduction to Linear Models
 
 - [Lecture Slides](lectures/VB_LinMods.pdf), [Lecture Video 1](https://www.youtube.com/watch?v=oqjzfXDgZY0&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=2), [Lecture Video 2](https://www.youtube.com/watch?v=-VelMqc9z6M&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=1), [Practical](activities/VB_Linear_models_activity.html)
-
-
-
+- Datasets:
+    - [Genome Size](data/GenomeSize.csv)
+    - [Huxley et al Trait Data](data/traitdata_Huxleyetal_2021.csv)
+    - [Linear Models Practical Data](data/lmdataset.csv)
+    
 <br>
 <br>
 
@@ -64,15 +72,28 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 ### Nonlinear Modeling (including Thermal Performance Curves -- TPCs)
 
 - [Lecture Slides](lectures/VB_NLLS.pdf), [Lecture Video](https://www.youtube.com/watch?v=dnZlU2_iQ1k&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=3), [Practical](activities/VB_NLLS_activity.html)
+- Datasets:
+    - [csm7I Data](data/csm7I.csv)
+    - [Aedes Juvenile Mortality Data](data/juvenilemortalityrateae.csv)
+    - [NLLS Practical Data](data/nllsdataset.csv)
+    
 
 ### Simple Models for Temporal Data (based on Linear Models)
 
-- [Lecture Slides](lectures/VB_TS.pdf),  [Lecture Video](https://www.youtube.com/watch?v=CIAoauEoTTo&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=5), [Practical](activities/VB_TimeSeries.html), [Airline "solution"](activities/VB_TS_exercise_soln.html) 
+- [Lecture Slides](lectures/VB_TS.pdf),  [Lecture Video](https://www.youtube.com/watch?v=CIAoauEoTTo&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=5), [Practical](activities/VB_TimeSeries.html), [Airline "solution"](activities/VB_TS_exercise_soln.html)
+- Datasets:
+    - [Culex erraticus Data](data/Culex_erraticus_walton.csv)
+    - [Culex nigripalpus Manatee County Data](data/Culex_nigripalpus_manatee.csv)
+    - [Culex nigripalpus Walton County Data](data/Culex_nigripalpus_walton.csv)
+    - [Climate Data](data/vectorbase_locations_dates_climate.csv)
+    - [Airline Data](data/airline.csv)
+    
 
 
 ### Review of Likelihoods 
 
-- [Lecture Slides](lectures/VB_likelihood.pdf),  [Lecture Video](https://www.youtube.com/watch?v=MQOI91UMDX4&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=7), [Practical](activities/VB_likelihood_activity.html) 
+- [Lecture Slides](lectures/VB_likelihood.pdf),  [Lecture Video](https://www.youtube.com/watch?v=MQOI91UMDX4&list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&index=7), [Practical](activities/VB_likelihood_activity.html)
+
 
 <br>
 <br>
@@ -96,5 +117,4 @@ We are assuming familiarity with R basics. In addition, we recommend that you do
 
 ### Introduction to Bayesian State-Space models for Temporal Data
 - [Lecture Slides 1](lectures/vb_state_space1.pdf), [Lecture Slides 2](lectures/vb_state_space2.pdf), [Lecture Slides 3](lectures/vb_state_space3.pdf), [Lecture Video 1](https://www.youtube.com/watch?v=-hvOaRwf6Mw), [Lecture Video 2](https://www.youtube.com/watch?v=d_gegj-Cc4I), [Lecture Video 3](https://www.youtube.com/watch?v=jHzwODN7E34), [Modeling Activity](activities/SSM_activity.html)
-
 

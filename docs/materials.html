@@ -23,6 +23,7 @@
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
 div.sourceCode { margin: 1em 0; }
 pre.sourceCode { margin: 0; }
@@ -2447,7 +2448,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     color: var(--hover-color, white);
   }</style>
   <!--/radix_placeholder_distill-->
-  <script src="site_libs/header-attrs-2.8/header-attrs.js"></script>
+  <script src="site_libs/header-attrs-2.9/header-attrs.js"></script>
   <script src="site_libs/popper-2.6.0/popper.min.js"></script>
   <link href="site_libs/tippy-6.2.7/tippy.css" rel="stylesheet" />
   <link href="site_libs/tippy-6.2.7/tippy-light-border.css" rel="stylesheet" />
@@ -2562,20 +2563,48 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <h3 id="data-wrangling-in-r">Data Wrangling in R</h3>
 <ul>
 <li><a href="activities/VB_Datawrangling_exp_design.html">Self-Guided Activity</a></li>
+<li>Datasets:
+<ul>
+<li><a href="data/PoundHillData.csv">Poundhill Data</a></li>
+<li><a href="data/PoundHillMetaData.csv">Poundhill Meta Data</a></li>
+<li><a href="data/traitdata_Huxleyetal_2021.csv">Huxley et al Trait Data</a></li>
+<li><a href="data/GenomeSize.csv">Genome Size</a></li>
+<li><a href="data/wranglingdataset.csv">Wrangling Practical Data</a></li>
+</ul></li>
 </ul>
 <h3 id="introduction-to-linear-models">Introduction to Linear Models</h3>
 <ul>
 <li><a href="lectures/VB_LinMods.pdf">Lecture Slides</a>, <a href="https://www.youtube.com/watch?v=oqjzfXDgZY0&amp;list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&amp;index=2">Lecture Video 1</a>, <a href="https://www.youtube.com/watch?v=-VelMqc9z6M&amp;list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&amp;index=1">Lecture Video 2</a>, <a href="activities/VB_Linear_models_activity.html">Practical</a></li>
+<li>Datasets:
+<ul>
+<li><a href="data/GenomeSize.csv">Genome Size</a></li>
+<li><a href="data/traitdata_Huxleyetal_2021.csv">Huxley et al Trait Data</a></li>
+<li><a href="data/lmdataset.csv">Linear Models Practical Data</a></li>
+</ul></li>
 </ul>
 <p><br> <br></p>
 <h1 id="intermediate-materials">Intermediate materials</h1>
 <h3 id="nonlinear-modeling-including-thermal-performance-curves-tpcs">Nonlinear Modeling (including Thermal Performance Curves – TPCs)</h3>
 <ul>
 <li><a href="lectures/VB_NLLS.pdf">Lecture Slides</a>, <a href="https://www.youtube.com/watch?v=dnZlU2_iQ1k&amp;list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&amp;index=3">Lecture Video</a>, <a href="activities/VB_NLLS_activity.html">Practical</a></li>
+<li>Datasets:
+<ul>
+<li><a href="data/csm7I.csv">csm7I Data</a></li>
+<li><a href="data/juvenilemortalityrateae.csv">Aedes Juvenile Mortality Data</a></li>
+<li><a href="data/nllsdataset.csv">NLLS Practical Data</a></li>
+</ul></li>
 </ul>
 <h3 id="simple-models-for-temporal-data-based-on-linear-models">Simple Models for Temporal Data (based on Linear Models)</h3>
 <ul>
 <li><a href="lectures/VB_TS.pdf">Lecture Slides</a>, <a href="https://www.youtube.com/watch?v=CIAoauEoTTo&amp;list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&amp;index=5">Lecture Video</a>, <a href="activities/VB_TimeSeries.html">Practical</a>, <a href="activities/VB_TS_exercise_soln.html">Airline “solution”</a></li>
+<li>Datasets:
+<ul>
+<li><a href="data/Culex_erraticus_walton.csv">Culex erraticus Data</a></li>
+<li><a href="data/Culex_nigripalpus_manatee.csv">Culex nigripalpus Manatee County Data</a></li>
+<li><a href="data/Culex_nigripalpus_walton.csv">Culex nigripalpus Walton County Data</a></li>
+<li><a href="data/vectorbase_locations_dates_climate.csv">Climate Data</a></li>
+<li><a href="data/airline.csv">Airline Data</a></li>
+</ul></li>
 </ul>
 <h3 id="review-of-likelihoods">Review of Likelihoods</h3>
 <ul>
@@ -2586,10 +2615,19 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <h3 id="bayesian-basics">Bayesian Basics</h3>
 <ul>
 <li><a href="lectures/VB_Bayes1.pdf">Lecture Slides</a>, <a href="https://www.youtube.com/watch?v=sVtaTTIZEa4&amp;list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&amp;index=4">Lecture Video</a>, <a href="activities/VB_Bayes_activity1.html">Analytic Practical</a></li>
+<li>Datasets:
+<ul>
+<li><a href="data/MidgeWingLength.csv">Midge Length Data</a></li>
+</ul></li>
 </ul>
 <h3 id="fitting-bayesian-models-using-jags">Fitting Bayesian Models Using JAGS</h3>
 <ul>
 <li><a href="lectures/VB_Bayes2.pdf">Lecture Slides</a>, <a href="https://www.youtube.com/watch?v=mQQV0Isn_lY&amp;list=PLrMhLVyZEsORr81gXrfgiq2vX30_brtpF&amp;index=11">Lecture Video</a>, <a href="activities/VB_Bayes_activity2.html">Computational Practical</a></li>
+<li>Datasets:
+<ul>
+<li><a href="data/MidgeWingLength.csv">Midge Length Data</a></li>
+<li><a href="data/AeaegyptiTraitData.csv">Aedes Trait Data</a></li>
+</ul></li>
 </ul>
 <h3 id="introduction-to-bayesian-state-space-models-for-temporal-data">Introduction to Bayesian State-Space models for Temporal Data</h3>
 <ul>
