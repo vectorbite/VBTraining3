@@ -94,7 +94,7 @@ Stochastic simulation is a way to understand variability in a system and for cal
 
 `r sk2()`
 
-Monte Carlo (MC) methods are ``a broad class of computational algorithms that rely on  `r mygrn("repeated random sampling")` to obtain numerical results.'' - Wikipedia 
+Monte Carlo (MC) methods are "a broad class of computational algorithms that rely on  `r mygrn("repeated random sampling")` to obtain numerical results." - Wikipedia 
 
 
 
@@ -150,7 +150,7 @@ We can also use the draws to calculate the posterior distribution of `r mygrn("a
 
 
  
-##  The ``plug-in principle''
+##  The "plug-in principle"
 
 Using MC to perform these calculations (and to propagate the uncertainty) rests on the idea of the `r myred("plug-in principle")`: 
 
@@ -172,7 +172,7 @@ The approximation becomes more accurate if the number of samples is very large.
 ___`r myred("Example:")`___ Numerical 92\% CI of a beta distribution with parameters $a$ and $b$. 
 
 `r sk2()`
-Imagine we want to find, for some unknown reason, the central 92\% CI for a normal distribution.  How can we calculate this without using a look-up table, or similar function?
+Imagine we want to find, for some unknown reason, the central 92\% CI for a beta distribution.  How can we calculate this without using a look-up table, or similar function?
 
 `r sk2()`
 If we are able to generate samples from the desired distribution (which we'll take as given for now), we can use MC and the plug-in principle as follows:
