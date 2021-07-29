@@ -296,12 +296,12 @@ Now we plot each with their priors:
 ```{r, fig.align='center'}
 par(mfrow=c(1,2), bty="n")
 
-hist(samp[[1]][,1], xlab="samples of mu", main="mu")
+hist(samp[[1]][,1], xlab="samples of mu", main="mu", freq=FALSE)
 lines(x, dnorm(x, mean=mu0, sd=sqrt(s20)), 
       col=2, lty=2, lwd=2) ## prior
 
 x2<-seq(0, 200, length=1000)
-hist(1/samp[[1]][,2], xlab="samples of tau", main="tau")
+hist(1/samp[[1]][,2], xlab="samples of tau", main="tau", freq=FALSE)
 lines(x2, dgamma(x2, shape = a, rate = b), 
       col=2, lty=2, lwd=2) ## prior
 
